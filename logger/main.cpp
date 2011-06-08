@@ -24,15 +24,27 @@
 #include <boost/thread/recursive_mutex.hpp>
 #include <boost/thread/condition.hpp>
 
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/date_time/c_local_time_adjustor.hpp>
+
 #include <rsb/Factory.h>
 #include <rsb/Handler.h>
 #include <rsb/filter/ScopeFilter.h>
 
+#include <rsb/converter/PredicateConverterList.h>
+#include <rsb/converter/ByteArrayConverter.h>
+
 #include "formatting.h"
 
 using namespace std;
+
 using namespace boost;
+using namespace boost::posix_time;
+
+using namespace rsc::runtime;
+
 using namespace rsb;
+using namespace rsb::converter;
 
 class ShortFormattingHandler: public Handler {
 public:
@@ -45,25 +57,40 @@ public:
     }
 };
 
+ptime unixMicroSecnodsToPtime(uint64_t msecs) {
+    typedef boost::date_time::c_local_adjustor<ptime> local_adj;
+
+    time_t time = msecs / 1000000;
+    ptime temp1 = from_time_t(time);
+    ptime temp2(temp1.date(),
+		temp1.time_of_day() + microseconds(msecs % 1000000));
+    return local_adj::utc_to_local(temp2);
+}
+
 class DetailedFormattingHandler: public Handler {
 public:
     void handle(EventPtr event) {
 	std::cout << "Event" << std::endl
-		  << "  Scope  " << event->getScope() << std::endl
-		  << "  Id     " << event->getId() << std::endl
+		  << "  Scope  " << event->getScope().toString() << std::endl
+		  << "  Id     " << event->getId().getIdAsString() << std::endl
 		  << "  Type   " << event->getType() << std::endl
-		  << "  Origin " << event->getMetaData().getSenderId() << std::endl;
+		  << "  Origin " << event->getMetaData().getSenderId().getIdAsString() << std::endl;
 
 	const MetaData& metaData = event->getMetaData();
 
 	std::cout << "Timestamps" << std::endl
-		  << "  Create  " << metaData.getCreateTime() << std::endl
-		  << "  Send    " << metaData.getSendTime() << std::endl
-		  << "  Receive " << metaData.getReceiveTime() << std::endl
-		  << "  Deliver " << metaData.getDeliverTime() << std::endl;
+	          << "  Create  " << unixMicroSecnodsToPtime(metaData.getCreateTime()) << "+??:??" << std::endl
+	          << "  Send    " << unixMicroSecnodsToPtime(metaData.getSendTime()) << "+??:??" << std::endl
+                  << "  Receive " << unixMicroSecnodsToPtime(metaData.getReceiveTime()) << "+??:??" << std::endl
+	          << "  Deliver " << unixMicroSecnodsToPtime(metaData.getDeliverTime()) << "+??:??" << std::endl;
+	for (map<string, uint64_t>::const_iterator it = metaData.userTimesBegin();
+	     it != metaData.userTimesEnd(); ++it) {
+	    std::cout << "  *" << left << setw(6) << it->first
+	              << " " << unixMicroSecnodsToPtime(it->second) << "+??:??" << std::endl;
+	}
 
 	if (metaData.userInfosBegin() != metaData.userInfosEnd()) {
-	    std::cout << "Meta-data" << std::endl;
+	    std::cout << "User-Infos" << std::endl;
 	    for (map<string, string>::const_iterator it = metaData.userInfosBegin();
 		 it != metaData.userInfosEnd(); ++it) {
 		std::cout << "  " << left << setw(8) << it->first
@@ -85,6 +112,14 @@ public:
     }
 };
 
+template <typename WireType>
+typename ConverterSelectionStrategy<WireType>::Ptr createConverterSelectionStrategy() {
+    list< pair<ConverterPredicatePtr, typename Converter<WireType>::Ptr> > converters;
+    converters.push_back(make_pair(ConverterPredicatePtr(new AlwaysApplicable()),
+				   typename Converter<WireType>::Ptr(new ByteArrayConverter())));
+    return typename ConverterSelectionStrategy<WireType>::Ptr(new PredicateConverterList<WireType>(converters.begin(), converters.end()));
+}
+
 bool doTerminate = false;
 recursive_mutex terminateMutex;
 condition terminateCondition;
@@ -96,7 +131,15 @@ void handleSIGINT(int /*signal*/) {
 }
 
 int main(int argc, char* argv[]) {
-    ListenerPtr listener = Factory::getInstance().createListener(Scope(argv[1]));
+    ParticipantConfig config
+	= Factory::getInstance().getDefaultParticipantConfig();
+    ParticipantConfig::Transport transport = config.getTransport("spread");
+    Properties options = transport.getOptions();
+    options["converters"] = createConverterSelectionStrategy<string>();
+    transport.setOptions(options);
+    config.addTransport(transport);
+    ListenerPtr listener
+	= Factory::getInstance().createListener(Scope(argv[1]), config);
     listener->addHandler(HandlerPtr(new DetailedFormattingHandler()));
 
     // Wait until termination is requested through the SIGINT handler.
