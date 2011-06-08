@@ -34,7 +34,9 @@
 #include <rsb/filter/ScopeFilter.h>
 
 #include <rsb/converter/PredicateConverterList.h>
+#include <rsb/converter/RegexConverterPredicate.h>
 #include <rsb/converter/ByteArrayConverter.h>
+#include <rsb/converter/StringConverter.h>
 
 #include "formatting.h"
 
@@ -102,7 +104,7 @@ public:
 	}
 
 	PayloadFormatterPtr formatter = getFormatter(event);
-	std::cout << "Payload" << std::endl
+	std::cout << "Payload (" << event->getType() << ")" << std::endl
 		  << "  ";
 	formatter->format(std::cout, event);
 	std::cout << std::endl;
@@ -118,6 +120,8 @@ public:
 template <typename WireType>
 typename ConverterSelectionStrategy<WireType>::Ptr createConverterSelectionStrategy() {
     list< pair<ConverterPredicatePtr, typename Converter<WireType>::Ptr> > converters;
+    converters.push_back(make_pair(ConverterPredicatePtr(new RegexConverterPredicate("string")),
+				   typename Converter<WireType>::Ptr(new StringConverter())));
     converters.push_back(make_pair(ConverterPredicatePtr(new AlwaysApplicable()),
 				   typename Converter<WireType>::Ptr(new ByteArrayConverter())));
     return typename ConverterSelectionStrategy<WireType>::Ptr(new PredicateConverterList<WireType>(converters.begin(), converters.end()));
