@@ -45,17 +45,16 @@ PayloadFormatter* BytesPayloadFormatter::create(const Properties &props) {
 }
 
 void BytesPayloadFormatter::format(ostream &stream, EventPtr event) {
-    shared_ptr<void> data = static_pointer_cast<string>(event->getData());
+    shared_ptr<string> data = static_pointer_cast<string>(event->getData());
 
-    unsigned int   line   = 0;
-    unsigned int   column = this->indent;
-    unsigned int   offset = 0;
-    unsigned char* it     = reinterpret_cast<unsigned char*>(data.get());
-    unsigned char* end    = it + 100;
+    unsigned int	   line   = 0;
+    unsigned int	   column = this->indent;
+    unsigned int	   offset = 0;
+    string::const_iterator it     = data->begin();
 
     ios_all_saver saver(stream);
 
-    for (; (it != end)
+    for (; (it != data->end())
 	     && (line < this->maxLines)
 	     && ((line < (this->maxLines - 1))
 		 || (column < (this->maxColumns - 4)));
@@ -73,7 +72,7 @@ void BytesPayloadFormatter::format(ostream &stream, EventPtr event) {
 	    stream << endl << string(this->indent, ' ');
 	}
     }
-    if (it != end) {
+    if (it != data->end()) {
 	stream << "...";
     }
 }
