@@ -27,6 +27,8 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/date_time/c_local_time_adjustor.hpp>
 
+#include <boost/program_options.hpp>
+
 #include <rsb/Factory.h>
 #include <rsb/Handler.h>
 #include <rsb/filter/ScopeFilter.h>
@@ -40,20 +42,21 @@ using namespace std;
 
 using namespace boost;
 using namespace boost::posix_time;
+using namespace boost::program_options;
 
 using namespace rsc::runtime;
 
 using namespace rsb;
 using namespace rsb::converter;
 
-class ShortFormattingHandler: public Handler {
+class CompactFormattingHandler: public Handler {
 public:
     void handle(EventPtr event) {
 	std::cout << "event " << event << std::endl;
     }
 
     string getClassName() const {
-	return "EventFormattingHandler";
+	return "CompactFormattingHandler";
     }
 };
 
@@ -108,7 +111,7 @@ public:
     }
 
     string getClassName() const {
-	return "EventFormattingHandler";
+	return "DetailedFormattingHandler";
     }
 };
 
@@ -118,6 +121,48 @@ typename ConverterSelectionStrategy<WireType>::Ptr createConverterSelectionStrat
     converters.push_back(make_pair(ConverterPredicatePtr(new AlwaysApplicable()),
 				   typename Converter<WireType>::Ptr(new ByteArrayConverter())));
     return typename ConverterSelectionStrategy<WireType>::Ptr(new PredicateConverterList<WireType>(converters.begin(), converters.end()));
+}
+
+string scope;
+string eventFormat;
+
+options_description options("Allowed options");
+
+bool handleCommandline(int argc, char *argv[]) {
+    options.add_options()
+	("help",
+	 "Display a help message.")
+	("scope",
+	 value<string>(&scope),
+	 "The scope of the channel for which events should be logged.")
+	("format",
+	 value<string>(&eventFormat)->default_value("compact"),
+	 "The format that should be used to print received events. Allowed values are \"compact\" and \"detailed\".");
+
+    positional_options_description positional_options;
+    positional_options.add("scope", 1);
+
+    variables_map map;
+    store(command_line_parser(argc, argv)
+	  .options(options)
+	  .positional(positional_options)
+	  .run(), map);
+    notify(map);
+    if (map.count("help"))
+	return true;
+    if (eventFormat != "compact" && eventFormat != "detailed") {
+	throw invalid_argument("Argument of --format option has to be either \"compact\" or \"detailed\".");
+    }
+    if (scope.empty()) {
+	throw invalid_argument("A Scope has to be specified.");
+    }
+
+    return false;
+}
+
+void usage() {
+    cout << "usage: logger SCOPE [OPTIONS]" << endl;
+    cout << options << endl;
 }
 
 bool doTerminate = false;
@@ -131,6 +176,19 @@ void handleSIGINT(int /*signal*/) {
 }
 
 int main(int argc, char* argv[]) {
+    // Handle commandline arguments.
+    try {
+	if (handleCommandline(argc, argv)) {
+	    usage(); // --help
+	    return EXIT_SUCCESS;
+	}
+    } catch (const std::exception& e) {
+	cerr << "Error parsing command line: " << e.what() << endl;
+	usage();
+	return EXIT_FAILURE;
+    }
+
+    // Configure a Listener object.
     ParticipantConfig config
 	= Factory::getInstance().getDefaultParticipantConfig();
     ParticipantConfig::Transport transport = config.getTransport("spread");
@@ -139,8 +197,12 @@ int main(int argc, char* argv[]) {
     transport.setOptions(options);
     config.addTransport(transport);
     ListenerPtr listener
-	= Factory::getInstance().createListener(Scope(argv[1]), config);
-    listener->addHandler(HandlerPtr(new DetailedFormattingHandler()));
+	= Factory::getInstance().createListener(Scope(scope), config);
+    if (eventFormat == "compact") {
+	listener->addHandler(HandlerPtr(new CompactFormattingHandler()));
+    } else if (eventFormat == "detailed") {
+	listener->addHandler(HandlerPtr(new DetailedFormattingHandler()));
+    }
 
     // Wait until termination is requested through the SIGINT handler.
     signal(SIGINT, &handleSIGINT);
