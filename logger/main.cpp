@@ -28,6 +28,8 @@
 #include <rsb/Handler.h>
 #include <rsb/filter/ScopeFilter.h>
 
+#include "formatting.h"
+
 using namespace std;
 using namespace boost;
 using namespace rsb;
@@ -69,10 +71,13 @@ public:
 	    }
 	}
 
+	PayloadFormatterPtr formatter = getFormatter(event);
 	std::cout << "Payload" << std::endl
-		  << "  " << *static_pointer_cast<string>(event->getData()) << std::endl;
+		  << "  ";
+	formatter->format(std::cout, event);
+	std::cout << std::endl;
 
-	std::cout << string(80, '-') << std::endl;
+	std::cout << string(79, '-') << std::endl;
     }
 
     string getClassName() const {
