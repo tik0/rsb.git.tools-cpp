@@ -20,6 +20,7 @@
 #pragma once
 
 #include <iostream>
+#include <set>
 
 #include <boost/shared_ptr.hpp>
 
@@ -30,33 +31,31 @@
 
 /**
  * Implementations of this interface format @ref rsb::Event
- * payloads. Each implementation is capable of formatting one payload
- * type.
+ * objects. Each implementation formats events in a specific way.
  *
  * @author jmoringe
  */
-class PayloadFormatter {
+class EventFormatter {
 public:
     /**
-     * Format the payload of @a event onto @a stream in type-dependent
-     * (of the payload) way.
+     * Format @a event onto @a stream ..
      *
-     * @param stream The stream onto which the payload should be
+     * @param stream The stream onto which the event should be
      * formatted.
-     * @param event The event from which the paylaod should be
-     * extracted. The payload returned by @ref rsb::Event::getData has
-     * to be of the type indicated by @ref rsb::Event::getType .
+     * @param event The event that should be formatted.
      */
     virtual void format(std::ostream &stream, rsb::EventPtr event) = 0;
 };
 
-typedef boost::shared_ptr<PayloadFormatter> PayloadFormatterPtr;
+typedef boost::shared_ptr<EventFormatter> EventFormatterPtr;
 
-class PayloadFormatterFactory: public rsc::patterns::Factory<std::string, PayloadFormatter>,
-			       public rsc::patterns::Singleton<PayloadFormatterFactory> {
-friend class rsc::patterns::Singleton<PayloadFormatterFactory>;
+class EventFormatterFactory: public rsc::patterns::Factory<std::string, EventFormatter>,
+                             public rsc::patterns::Singleton<EventFormatterFactory> {
+    friend class rsc::patterns::Singleton<EventFormatterFactory>;
 private:
-    PayloadFormatterFactory();
+    EventFormatterFactory();
 };
 
-PayloadFormatterPtr getFormatter(rsb::EventPtr event);
+std::set<std::string> getEventFormatterNames();
+
+EventFormatterPtr getEventFormatter(rsb::EventPtr event);

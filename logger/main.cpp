@@ -21,11 +21,10 @@
 
 #include <iostream>
 
+#include <boost/format.hpp>
+
 #include <boost/thread/recursive_mutex.hpp>
 #include <boost/thread/condition.hpp>
-
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/date_time/c_local_time_adjustor.hpp>
 
 #include <boost/program_options.hpp>
 
@@ -38,7 +37,8 @@
 #include <rsb/converter/ByteArrayConverter.h>
 #include <rsb/converter/StringConverter.h>
 
-#include "formatting.h"
+#include "EventFormatter.h"
+#include "PayloadFormatter.h"
 
 using namespace std;
 
@@ -51,7 +51,24 @@ using namespace rsc::runtime;
 using namespace rsb;
 using namespace rsb::converter;
 
-class CompactFormattingHandler: public Handler {
+class FormattingHandler: public Handler {
+public:
+    FormattingHandler(EventFormatterPtr formatter):
+        formatter(formatter) {
+    }
+
+    void handle(EventPtr event) {
+        this->formatter->format(std::cout, event);
+    }
+
+    string getClassName() const {
+	return "FormattingHandler";
+    }
+private:
+    EventFormatterPtr formatter;
+};
+
+/*class CompactFormattingHandler: public Handler {
 public:
     void handle(EventPtr event) {
 	std::cout << "event " << event << std::endl;
@@ -115,7 +132,7 @@ public:
     string getClassName() const {
 	return "DetailedFormattingHandler";
     }
-};
+    };*/
 
 template <typename WireType>
 typename ConverterSelectionStrategy<WireType>::Ptr createConverterSelectionStrategy() {
@@ -141,7 +158,8 @@ bool handleCommandline(int argc, char *argv[]) {
 	 "The scope of the channel for which events should be logged.")
 	("format",
 	 value<string>(&eventFormat)->default_value("compact"),
-	 "The format that should be used to print received events. Allowed values are \"compact\" and \"detailed\".");
+	 str(format("The format that should be used to print received events. Value has to be one of %1%.")
+	     % getEventFormatterNames()).c_str());
 
     positional_options_description positional_options;
     positional_options.add("scope", 1);
@@ -154,8 +172,9 @@ bool handleCommandline(int argc, char *argv[]) {
     notify(map);
     if (map.count("help"))
 	return true;
-    if (eventFormat != "compact" && eventFormat != "detailed") {
-	throw invalid_argument("Argument of --format option has to be either \"compact\" or \"detailed\".");
+    if (!getEventFormatterNames().count(eventFormat)) {
+	throw invalid_argument(str(format("Argument of --format option has to one of %1%.")
+				   % getEventFormatterNames()));
     }
     if (scope.empty()) {
 	throw invalid_argument("A Scope has to be specified.");
@@ -192,6 +211,9 @@ int main(int argc, char* argv[]) {
 	return EXIT_FAILURE;
     }
 
+    // Create an event formatter
+    EventFormatterPtr formatter(EventFormatterFactory::getInstance().createInst(eventFormat));
+
     // Configure a Listener object.
     ParticipantConfig config
 	= Factory::getInstance().getDefaultParticipantConfig();
@@ -202,11 +224,7 @@ int main(int argc, char* argv[]) {
     config.addTransport(transport);
     ListenerPtr listener
 	= Factory::getInstance().createListener(Scope(scope), config);
-    if (eventFormat == "compact") {
-	listener->addHandler(HandlerPtr(new CompactFormattingHandler()));
-    } else if (eventFormat == "detailed") {
-	listener->addHandler(HandlerPtr(new DetailedFormattingHandler()));
-    }
+    listener->addHandler(HandlerPtr(new FormattingHandler(formatter)));
 
     // Wait until termination is requested through the SIGINT handler.
     signal(SIGINT, &handleSIGINT);

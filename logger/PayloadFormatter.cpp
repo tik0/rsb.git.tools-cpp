@@ -17,26 +17,25 @@
  *
  * ============================================================ */
 
-#pragma once
-
 #include "PayloadFormatter.h"
+#include "StringPayloadFormatter.h"
+#include "BytesPayloadFormatter.h"
 
-/**
- * A formatter for binary payloads.
- *
- * @author jmoringe
- */
-class BytesPayloadFormatter: public PayloadFormatter {
-public:
-    BytesPayloadFormatter(unsigned int indent = 2,
-			  unsigned int maxLines = 4,
-			  unsigned int maxColumns = 79);
+using namespace rsc::patterns;
 
-    static PayloadFormatter* create(const rsc::runtime::Properties &props);
+using namespace rsb;
 
-    void format(std::ostream &stream, rsb::EventPtr event);
-private:
-    unsigned int indent;
-    unsigned int maxLines;
-    unsigned int maxColumns;
-};
+PayloadFormatterFactory::PayloadFormatterFactory() {
+    this->register_("std::string", &StringPayloadFormatter::create);
+    this->register_("bytes",       &BytesPayloadFormatter::create);
+}
+
+PayloadFormatterPtr getPayloadFormatter(EventPtr event) {
+    PayloadFormatterFactory &factory = PayloadFormatterFactory::getInstance();
+
+    try {
+	return PayloadFormatterPtr(factory.createInst(event->getType()));
+    } catch (const NoSuchImpl&) {
+        return PayloadFormatterPtr(new BytesPayloadFormatter());
+    }
+}

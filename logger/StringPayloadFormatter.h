@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "formatting.h"
+#include "PayloadFormatter.h"
 
 /**
  * A formatter for string payloads.

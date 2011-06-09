@@ -17,25 +17,17 @@
  *
  * ============================================================ */
 
-#include "formatting.h"
-#include "StringPayloadFormatter.h"
-#include "BytesPayloadFormatter.h"
+#pragma once
 
-using namespace rsc::patterns;
+#include "EventFormatter.h"
 
-using namespace rsb;
+/**
+ *
+ * @author jmoringe
+ */
+class DetailedEventFormatter: public EventFormatter {
+public:
+    static EventFormatter* create(const rsc::runtime::Properties &props);
 
-PayloadFormatterFactory::PayloadFormatterFactory() {
-    this->register_("std::string", &StringPayloadFormatter::create);
-    this->register_("bytes",       &BytesPayloadFormatter::create);
-}
-
-PayloadFormatterPtr getFormatter(EventPtr event) {
-    PayloadFormatterFactory &factory = PayloadFormatterFactory::getInstance();
-
-    try {
-	return PayloadFormatterPtr(factory.createInst(event->getType()));
-    } catch (const NoSuchImpl&) {
-        return PayloadFormatterPtr(new BytesPayloadFormatter());
-    }
-}
+    void format(std::ostream &stream, rsb::EventPtr event);
+};

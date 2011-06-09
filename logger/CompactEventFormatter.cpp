@@ -17,26 +17,18 @@
  *
  * ============================================================ */
 
-#pragma once
+#include "CompactEventFormatter.h"
 
-#include "PayloadFormatter.h"
+using namespace std;
 
-/**
- * A formatter for binary payloads.
- *
- * @author jmoringe
- */
-class BytesPayloadFormatter: public PayloadFormatter {
-public:
-    BytesPayloadFormatter(unsigned int indent = 2,
-			  unsigned int maxLines = 4,
-			  unsigned int maxColumns = 79);
+using namespace rsc::runtime;
 
-    static PayloadFormatter* create(const rsc::runtime::Properties &props);
+using namespace rsb;
 
-    void format(std::ostream &stream, rsb::EventPtr event);
-private:
-    unsigned int indent;
-    unsigned int maxLines;
-    unsigned int maxColumns;
-};
+EventFormatter* CompactEventFormatter::create(const Properties &/*props*/) {
+    return new CompactEventFormatter();
+}
+
+void CompactEventFormatter::format(ostream &stream, EventPtr event) {
+    stream << "event " << event << endl;
+}

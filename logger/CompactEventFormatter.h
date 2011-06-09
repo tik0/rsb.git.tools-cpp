@@ -19,24 +19,15 @@
 
 #pragma once
 
-#include "PayloadFormatter.h"
+#include "EventFormatter.h"
 
 /**
- * A formatter for binary payloads.
  *
  * @author jmoringe
  */
-class BytesPayloadFormatter: public PayloadFormatter {
+class CompactEventFormatter: public EventFormatter {
 public:
-    BytesPayloadFormatter(unsigned int indent = 2,
-			  unsigned int maxLines = 4,
-			  unsigned int maxColumns = 79);
-
-    static PayloadFormatter* create(const rsc::runtime::Properties &props);
+    static EventFormatter* create(const rsc::runtime::Properties &props);
 
     void format(std::ostream &stream, rsb::EventPtr event);
-private:
-    unsigned int indent;
-    unsigned int maxLines;
-    unsigned int maxColumns;
 };
