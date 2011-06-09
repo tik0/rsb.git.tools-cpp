@@ -63,8 +63,8 @@ void BytesPayloadFormatter::format(ostream &stream, EventPtr event) {
 	    stream << "0x" << setw(4) << setfill('0') << right << hex << offset << " ";
 	    column += 7;
 	}
-	
-	stream << setw(2) << hex << static_cast<unsigned int>(*it) << " ";	
+
+	stream << setw(2) << hex << static_cast<unsigned int>(static_cast<unsigned char>(*it)) << " ";
 	column += 3;
 	if (column >= (this->maxColumns - 3)) {
 	    column = this->indent;
