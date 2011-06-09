@@ -153,6 +153,8 @@ EventFormatter* StatisticsEventFormatter::create(const Properties &props) {
 }
 
 void StatisticsEventFormatter::format(ostream &/*stream*/, EventPtr event) {
+    recursive_mutex::scoped_lock lock(this->quantitiesMutex);
+
     for (QuantitiesMap::iterator it = this->quantities.begin();
          it != this->quantities.end(); ++it) {
         it->second->update(event);
@@ -160,6 +162,8 @@ void StatisticsEventFormatter::format(ostream &/*stream*/, EventPtr event) {
 }
 
 void StatisticsEventFormatter::printStats() {
+    recursive_mutex::scoped_lock lock(this->quantitiesMutex);
+
     if (((this->lines) % 24) == 0) {
 	printHeader();
     }

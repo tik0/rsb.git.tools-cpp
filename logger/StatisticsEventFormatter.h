@@ -62,6 +62,7 @@ private:
     typedef std::list<std::pair< std::string, QuantityPtr> > QuantitiesMap;
 
     QuantitiesMap                     quantities;
+    boost::recursive_mutex            quantitiesMutex;
 
     std::ostream                     &stream;
     unsigned int                      lines;
