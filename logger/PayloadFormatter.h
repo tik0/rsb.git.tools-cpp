@@ -37,6 +37,8 @@
  */
 class PayloadFormatter {
 public:
+    virtual ~PayloadFormatter();
+
     /**
      * Format the payload of @a event onto @a stream in type-dependent
      * (of the payload) way.

@@ -37,6 +37,8 @@
  */
 class EventFormatter {
 public:
+    virtual ~EventFormatter();
+
     /**
      * Format @a event onto @a stream ..
      *

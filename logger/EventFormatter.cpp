@@ -30,6 +30,9 @@ using namespace rsc::patterns;
 
 using namespace rsb;
 
+EventFormatter::~EventFormatter() {
+}
+
 EventFormatterFactory::EventFormatterFactory() {
     this->register_("compact",  &CompactEventFormatter::create);
     this->register_("detailed", &DetailedEventFormatter::create);

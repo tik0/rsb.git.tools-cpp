@@ -25,6 +25,9 @@ using namespace rsc::patterns;
 
 using namespace rsb;
 
+PayloadFormatter::~PayloadFormatter() {
+}
+
 PayloadFormatterFactory::PayloadFormatterFactory() {
     this->register_("std::string", &StringPayloadFormatter::create);
     this->register_("bytes",       &BytesPayloadFormatter::create);
