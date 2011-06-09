@@ -23,6 +23,7 @@
 
 #include "CompactEventFormatter.h"
 #include "DetailedEventFormatter.h"
+#include "StatisticsEventFormatter.h"
 
 using namespace std;
 
@@ -36,6 +37,7 @@ EventFormatter::~EventFormatter() {
 EventFormatterFactory::EventFormatterFactory() {
     this->register_("compact",  &CompactEventFormatter::create);
     this->register_("detailed", &DetailedEventFormatter::create);
+    this->register_("stats",    &StatisticsEventFormatter::create);
 }
 
 set<string> getEventFormatterNames() {
