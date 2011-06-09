@@ -68,72 +68,6 @@ private:
     EventFormatterPtr formatter;
 };
 
-/*class CompactFormattingHandler: public Handler {
-public:
-    void handle(EventPtr event) {
-	std::cout << "event " << event << std::endl;
-    }
-
-    string getClassName() const {
-	return "CompactFormattingHandler";
-    }
-};
-
-ptime unixMicroSecnodsToPtime(uint64_t msecs) {
-    typedef boost::date_time::c_local_adjustor<ptime> local_adj;
-
-    time_t time = msecs / 1000000;
-    ptime temp1 = from_time_t(time);
-    ptime temp2(temp1.date(),
-		temp1.time_of_day() + microseconds(msecs % 1000000));
-    return local_adj::utc_to_local(temp2);
-}
-
-class DetailedFormattingHandler: public Handler {
-public:
-    void handle(EventPtr event) {
-	std::cout << "Event" << std::endl
-		  << "  Scope  " << event->getScope().toString() << std::endl
-		  << "  Id     " << event->getId().getIdAsString() << std::endl
-		  << "  Type   " << event->getType() << std::endl
-		  << "  Origin " << event->getMetaData().getSenderId().getIdAsString() << std::endl;
-
-	const MetaData& metaData = event->getMetaData();
-
-	std::cout << "Timestamps" << std::endl
-	          << "  Create  " << unixMicroSecnodsToPtime(metaData.getCreateTime()) << "+??:??" << std::endl
-	          << "  Send    " << unixMicroSecnodsToPtime(metaData.getSendTime()) << "+??:??" << std::endl
-                  << "  Receive " << unixMicroSecnodsToPtime(metaData.getReceiveTime()) << "+??:??" << std::endl
-	          << "  Deliver " << unixMicroSecnodsToPtime(metaData.getDeliverTime()) << "+??:??" << std::endl;
-	for (map<string, uint64_t>::const_iterator it = metaData.userTimesBegin();
-	     it != metaData.userTimesEnd(); ++it) {
-	    std::cout << "  *" << left << setw(6) << it->first
-	              << " " << unixMicroSecnodsToPtime(it->second) << "+??:??" << std::endl;
-	}
-
-	if (metaData.userInfosBegin() != metaData.userInfosEnd()) {
-	    std::cout << "User-Infos" << std::endl;
-	    for (map<string, string>::const_iterator it = metaData.userInfosBegin();
-		 it != metaData.userInfosEnd(); ++it) {
-		std::cout << "  " << left << setw(8) << it->first
-			  << " " << it->second << std::endl;
-	    }
-	}
-
-	PayloadFormatterPtr formatter = getFormatter(event);
-	std::cout << "Payload (" << event->getType() << ")" << std::endl
-		  << "  ";
-	formatter->format(std::cout, event);
-	std::cout << std::endl;
-
-	std::cout << string(79, '-') << std::endl;
-    }
-
-    string getClassName() const {
-	return "DetailedFormattingHandler";
-    }
-    };*/
-
 template <typename WireType>
 typename ConverterSelectionStrategy<WireType>::Ptr createConverterSelectionStrategy() {
     list< pair<ConverterPredicatePtr, typename Converter<WireType>::Ptr> > converters;
@@ -212,7 +146,9 @@ int main(int argc, char* argv[]) {
     }
 
     // Create an event formatter
-    EventFormatterPtr formatter(EventFormatterFactory::getInstance().createInst(eventFormat));
+    Properties props;
+    props["stream"] = &std::cout;
+    EventFormatterPtr formatter(EventFormatterFactory::getInstance().createInst(eventFormat, props));
 
     // Configure a Listener object.
     ParticipantConfig config
