@@ -24,6 +24,7 @@
 #include "CompactEventFormatter.h"
 #include "DetailedEventFormatter.h"
 #include "StatisticsEventFormatter.h"
+#include "PayloadOnlyEventFormatter.h"
 
 using namespace std;
 
@@ -38,6 +39,7 @@ EventFormatterFactory::EventFormatterFactory() {
     this->register_("compact",  &CompactEventFormatter::create);
     this->register_("detailed", &DetailedEventFormatter::create);
     this->register_("stats",    &StatisticsEventFormatter::create);
+    this->register_("payload",  &PayloadOnlyEventFormatter::create);
 }
 
 set<string> getEventFormatterNames() {
