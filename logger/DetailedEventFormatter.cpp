@@ -77,8 +77,12 @@ void DetailedEventFormatter::format(ostream &stream, EventPtr event) {
     }
 
     PayloadFormatterPtr formatter = getPayloadFormatter(event);
-    stream << "Payload (" << event->getType() << ")" << std::endl
-           << "  ";
+    stream << "Payload (" << event->getType();
+    string extra = formatter->getExtraTypeInfo(event);
+    if (!extra.empty()) {
+	stream << ", " << extra;
+    }
+    stream   << ")" << std::endl << "  ";
     formatter->format(stream, event);
     stream << std::endl;
 

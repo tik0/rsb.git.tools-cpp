@@ -40,6 +40,18 @@ public:
     virtual ~PayloadFormatter();
 
     /**
+     * Return a string which provides additional information regarding
+     * the type of the event payload. For example, the lenght of a
+     * string or array payload could be returned here.
+     *
+     * @param event The event, from which the information should be
+     * obtained.
+     * @return A string containing additional information regarding
+     * the payload type.
+     */
+    virtual std::string getExtraTypeInfo(rsb::EventPtr event) const;
+
+    /**
      * Format the payload of @a event onto @a stream in type-dependent
      * (of the payload) way.
      *

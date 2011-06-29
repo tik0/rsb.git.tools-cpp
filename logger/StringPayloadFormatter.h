@@ -34,6 +34,9 @@ public:
 
     static PayloadFormatter* create(const rsc::runtime::Properties &props);
 
+    std::string getExtraTypeInfo(rsb::EventPtr event) const;
+
+
     void format(std::ostream &stream, rsb::EventPtr event);
 private:
     unsigned int indent;

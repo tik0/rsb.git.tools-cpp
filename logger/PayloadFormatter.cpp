@@ -21,11 +21,17 @@
 #include "StringPayloadFormatter.h"
 #include "BytesPayloadFormatter.h"
 
+using namespace std;
+
 using namespace rsc::patterns;
 
 using namespace rsb;
 
 PayloadFormatter::~PayloadFormatter() {
+}
+
+string PayloadFormatter::getExtraTypeInfo(EventPtr /*event*/) const {
+    return "";
 }
 
 PayloadFormatterFactory::PayloadFormatterFactory() {

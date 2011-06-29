@@ -21,6 +21,7 @@
 
 #include <iomanip>
 
+#include <boost/format.hpp>
 #include <boost/io/ios_state.hpp>
 
 using namespace std;
@@ -42,6 +43,12 @@ PayloadFormatter* BytesPayloadFormatter::create(const Properties &props) {
     return new BytesPayloadFormatter(props.get<unsigned int>("indent",     2),
 				      props.get<unsigned int>("maxLines",   4),
 				      props.get<unsigned int>("maxColumns", 79));
+}
+
+string BytesPayloadFormatter::getExtraTypeInfo(EventPtr event) const {
+  shared_ptr<string> data = static_pointer_cast<string>(event->getData());
+
+  return str(boost::format("length %1%") % data->size());
 }
 
 void BytesPayloadFormatter::format(ostream &stream, EventPtr event) {
