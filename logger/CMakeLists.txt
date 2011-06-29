@@ -1,5 +1,15 @@
+# -*- mode: cmake -*-
+
+# Logger binary
+
 FILE(GLOB LOGGER_SOURCES "*.cpp")
 
-ADD_EXECUTABLE(logger ${LOGGER_SOURCES})
+ADD_EXECUTABLE(rsblogger ${LOGGER_SOURCES})
 
-TARGET_LINK_LIBRARIES(logger ${RSC_LIBRARIES} ${RSB_LIBRARIES})
+TARGET_LINK_LIBRARIES(rsblogger ${RSC_LIBRARIES} ${RSB_LIBRARIES})
+
+# Install target
+
+INSTALL(TARGETS rsblogger
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib)
