@@ -20,6 +20,7 @@
 #include "PayloadFormatter.h"
 #include "StringPayloadFormatter.h"
 #include "BytesPayloadFormatter.h"
+#include "ProtocolBufferPayloadFormatter.h"
 
 using namespace std;
 
@@ -37,6 +38,7 @@ string PayloadFormatter::getExtraTypeInfo(EventPtr /*event*/) const {
 PayloadFormatterFactory::PayloadFormatterFactory() {
     this->register_("std::string", &StringPayloadFormatter::create);
     this->register_("bytes",       &BytesPayloadFormatter::create);
+    this->register_("pb-message",  &ProtocolBufferPayloadFormatter::create);
 }
 
 PayloadFormatterPtr getPayloadFormatter(EventPtr event) {
