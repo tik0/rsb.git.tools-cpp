@@ -71,7 +71,7 @@ private:
 template <typename WireType>
 typename ConverterSelectionStrategy<WireType>::Ptr createConverterSelectionStrategy() {
     list< pair<ConverterPredicatePtr, typename Converter<WireType>::Ptr> > converters;
-    converters.push_back(make_pair(ConverterPredicatePtr(new RegexConverterPredicate("string")),
+    converters.push_back(make_pair(ConverterPredicatePtr(new RegexConverterPredicate("(utf-8|ascii)-string")),
 				   typename Converter<WireType>::Ptr(new StringConverter())));
     converters.push_back(make_pair(ConverterPredicatePtr(new AlwaysApplicable()),
 				   typename Converter<WireType>::Ptr(new ByteArrayConverter())));
