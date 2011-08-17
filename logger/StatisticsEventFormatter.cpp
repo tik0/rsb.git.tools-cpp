@@ -156,34 +156,35 @@ void StatisticsEventFormatter::format(ostream &/*stream*/, EventPtr event) {
     recursive_mutex::scoped_lock lock(this->quantitiesMutex);
 
     for (QuantitiesMap::iterator it = this->quantities.begin();
-         it != this->quantities.end(); ++it) {
-        it->second->update(event);
-    }
+			it != this->quantities.end(); ++it) {
+		it->second->update(event);
+	}
 }
 
 void StatisticsEventFormatter::printStats() {
     recursive_mutex::scoped_lock lock(this->quantitiesMutex);
 
     if (((this->lines) % 24) == 0) {
-	printHeader();
-    }
+		printHeader();
+	}
 
     for (QuantitiesMap::iterator it = this->quantities.begin();
-	 it != this->quantities.end(); ++it) {
-	printQuantity(it->second);
-        this->stream << "|";
-        it->second->reset();
-    }
+			it != this->quantities.end(); ++it) {
+		printQuantity(it->second);
+		this->stream << "|";
+		it->second->reset();
+	}
     this->stream << endl;
     ++this->lines;
 }
 
 void StatisticsEventFormatter::printHeader() {
     for (QuantitiesMap::const_iterator it = this->quantities.begin();
-	 it != this->quantities.end(); ++it) {
-        this->stream << setw(it->second->getWidth()) << left << it->first << "|";
-    }
-    this->stream << endl;
+			it != this->quantities.end(); ++it) {
+		this->stream << setw(it->second->getWidth()) << left << it->first
+				<< "|";
+	}
+	this->stream << endl;
     ++this->lines;
 }
 
@@ -192,8 +193,8 @@ void StatisticsEventFormatter::printQuantity(QuantityPtr quantity) {
 }
 
 void StatisticsEventFormatter::run() {
-    while (!this->terminate) {
-	printStats();
-	sleep(1);
-    }
+	while (!this->terminate) {
+		printStats();
+		sleep(1);
+	}
 }
