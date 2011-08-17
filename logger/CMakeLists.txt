@@ -10,9 +10,9 @@ FILE(GLOB LOGGER_HEADERS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.h")
 IF(Boost_VERSION LESS 103801)
     ADD_DEFINITIONS(-DRSB_LOGGER_NO_STATISTICS_FORMATTER)
     MESSAGE(STATUS "Boost version is too old, disabling statistics formatter due to a bug.")
+    LIST(REMOVE_ITEM LOGGER_SOURCES "StatisticsEventFormatter.cpp")
+    LIST(REMOVE_ITEM LOGGER_HEADERS "StatisticsEventFormatter.h")
 ENDIF()
-LIST(REMOVE_ITEM LOGGER_SOURCES "StatisticsEventFormatter.cpp")
-LIST(REMOVE_ITEM LOGGER_HEADERS "StatisticsEventFormatter.h")
 
 ADD_EXECUTABLE(rsblogger ${LOGGER_SOURCES} ${LOGGER_HEADERS})
 
