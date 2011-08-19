@@ -51,7 +51,9 @@ ENDIF()
 
 # May depend on updated CMake module path.
 FIND_PACKAGE(Boost ${Boost_USE_VERSION} REQUIRED thread system filesystem program_options)
-FIND_PACKAGE(BoostUUID REQUIRED)
+IF(NOT RSC_INTERNAL_BOOST_UUID)
+    FIND_PACKAGE(BoostUUID REQUIRED)
+ENDIF()
 
 # RSB dependencies
 # May depend on updated CMake module path.
