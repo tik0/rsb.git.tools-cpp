@@ -49,7 +49,7 @@ EventFormatter* DetailedEventFormatter::create(const Properties &/*props*/) {
 
 void DetailedEventFormatter::format(ostream &stream, EventPtr event) {
     stream << "Event" << std::endl
-           << "  Scope           " << event->getScope().toString() << std::endl
+           << "  Scope           " << event->getScope()->toString() << std::endl
            << "  Id              " << event->getId().getIdAsString() << std::endl
            << "  Sequence Number " << event->getSequenceNumber() << std::endl
            << "  Type            " << event->getType() << std::endl
