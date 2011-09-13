@@ -40,13 +40,13 @@ PayloadFormatter* StringPayloadFormatter::create(const Properties &props) {
 }
 
 string StringPayloadFormatter::getExtraTypeInfo(EventPtr event) const {
-  shared_ptr<string> data = static_pointer_cast<string>(event->getData());
+    boost::shared_ptr<string> data = boost::static_pointer_cast<string>(event->getData());
 
-  return str(boost::format("length %1%") % data->size());
+    return str(boost::format("length %1%") % data->size());
 }
 
 void StringPayloadFormatter::format(ostream &stream, EventPtr event) {
-    shared_ptr<string> data = static_pointer_cast<string>(event->getData());
+    shared_ptr<string> data = boost::static_pointer_cast<string>(event->getData());
     if (!data) {
 	stream << "Failed to decode event data as string." << endl
 	       << "  Event: " << event << endl;

@@ -44,13 +44,13 @@ PayloadFormatter* ProtocolBufferPayloadFormatter::create(const Properties &props
 }
 
 string ProtocolBufferPayloadFormatter::getExtraTypeInfo(EventPtr event) const {
-    shared_ptr<Message> message = static_pointer_cast<Message>(event->getData());
+    boost::shared_ptr<Message> message = boost::static_pointer_cast<Message>(event->getData());
 
     return str(boost::format("type %1%") % message->GetDescriptor()->full_name());
 }
 
 void ProtocolBufferPayloadFormatter::format(ostream &stream, EventPtr event) {
-    shared_ptr<Message> message = static_pointer_cast<Message>(event->getData());
+    boost::shared_ptr<Message> message = boost::static_pointer_cast<Message>(event->getData());
 
     google::protobuf::io::OstreamOutputStream ostream(&stream);
     TextFormat::Print(*message, &ostream);
