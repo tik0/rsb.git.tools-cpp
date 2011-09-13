@@ -19,7 +19,8 @@ ADD_EXECUTABLE(rsblogger ${LOGGER_SOURCES} ${LOGGER_HEADERS})
 TARGET_LINK_LIBRARIES(rsblogger ${RSC_LIBRARIES}
                                 ${RSB_LIBRARIES}
                                 ${Boost_LIBRARIES}
-                                ${PROTOBUF_LIBRARIES})
+                                ${PROTOBUF_LIBRARIES}
+                                ${SPREAD_LIBRARIES})
 
 # Install target
 
