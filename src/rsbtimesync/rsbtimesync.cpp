@@ -40,7 +40,10 @@
 #include <rsc/runtime/ContainerIO.h>
 #include <rsc/threading/SynchronizedQueue.h>
 
+#include "SyncMapConverter.h"
+
 using namespace std;
+using namespace rsbtimesync;
 namespace po = boost::program_options;
 
 const char *OPTION_HELP = "help";
@@ -146,6 +149,30 @@ void configureConversion() {
 
 }
 
+rsb::ParticipantConfig createInformerConfig() {
+
+	list<pair<rsb::converter::ConverterPredicatePtr, rsb::converter::Converter<
+			string>::Ptr> > converters;
+	converters.push_back(
+			make_pair(
+					rsb::converter::ConverterPredicatePtr(
+							new rsb::converter::AlwaysApplicable()),
+					rsb::converter::Converter<string>::Ptr(new SyncMapConverter)));
+	rsb::converter::ConverterSelectionStrategy<string>::Ptr selectionStrategy(
+			new rsb::converter::PredicateConverterList<string>(
+					converters.begin(), converters.end()));
+	// adapt default participant configuration
+	rsb::ParticipantConfig config =
+			rsb::Factory::getInstance().getDefaultParticipantConfig();
+	rsb::ParticipantConfig::Transport transport = config.getTransport("spread");
+	rsc::runtime::Properties options = transport.getOptions();
+	options["converters"] = selectionStrategy;
+	transport.setOptions(options);
+	config.addTransport(transport);
+	return config;
+
+}
+
 int main(int argc, char **argv) {
 
 	rsc::logging::LoggerFactory::getInstance()->reconfigure(
@@ -188,8 +215,7 @@ int main(int argc, char **argv) {
 
 	rsb::Informer<void>::Ptr informer =
 			rsb::Factory::getInstance().createInformer<void> (outScope,
-					rsb::Factory::getInstance().getDefaultParticipantConfig(),
-					"SyncMap");
+					createInformerConfig(), "SyncMap");
 
 	// main loop
 	while (true) {
