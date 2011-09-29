@@ -19,6 +19,9 @@
 
 #pragma once
 
+#include <map>
+#include <vector>
+
 #include <rsb/converter/Converter.h>
 #include <rsb/converter/Repository.h>
 
@@ -26,6 +29,8 @@ namespace rsbtimesync {
 
 class SyncMapConverter: public rsb::converter::Converter<std::string> {
 public:
+
+	typedef std::map<rsb::Scope, std::vector<rsb::EventPtr> > DataMap;
 
 	SyncMapConverter(
 			rsb::converter::Repository<std::string>::Ptr converterRepository =

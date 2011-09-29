@@ -7,8 +7,7 @@ PROTOBUF_GENERATE(PROTOFILES "${CMAKE_CURRENT_SOURCE_DIR}/rsbtimesync/SyncMap.pr
 
 INCLUDE_DIRECTORIES(BEFORE "${CMAKE_CURRENT_BINARY_DIR}/rsbtimesync-generated")
 
-SET(RSBTS_SOURCES rsbtimesync/rsbtimesync.cpp
-                  rsbtimesync/SchemaAndByteArrayConverter.cpp
+SET(RSBTS_SOURCES rsbtimesync/SchemaAndByteArrayConverter.cpp
                   rsbtimesync/SyncMapConverter.cpp
                   ${PROTO_SOURCES})
 
@@ -16,7 +15,10 @@ SET(RSBTS_HEADERS rsbtimesync/SyncMapConverter.h
                   rsbtimesync/SchemaAndByteArrayConverter.h
                   ${PROTO_HEADERS})
 
-ADD_EXECUTABLE(rsbtimesync ${RSBTS_SOURCES} ${RSBTS_HEADERS})
-TARGET_LINK_LIBRARIES(rsbtimesync ${RSB_LIBRARIES}
-                                  ${RST_LIBRARIES}
-                                  ${Boost_LIBRARIES})
+ADD_LIBRARY(${LIBRARY_NAME} SHARED ${RSBTS_SOURCES} ${RSBTS_HEADERS})
+TARGET_LINK_LIBRARIES(${LIBRARY_NAME} ${RSB_LIBRARIES}
+                                      ${RST_LIBRARIES}
+                                      ${Boost_LIBRARIES})
+
+ADD_EXECUTABLE(${BINARY_NAME} rsbtimesync/rsbtimesync.cpp)
+TARGET_LINK_LIBRARIES(${BINARY_NAME} ${LIBRARY_NAME})

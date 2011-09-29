@@ -223,10 +223,15 @@ int main(int argc, char **argv) {
 		boost::shared_ptr<map<rsb::Scope, vector<rsb::EventPtr> > > message(
 				new map<rsb::Scope, vector<rsb::EventPtr> > );
 
+		rsb::EventPtr event(new rsb::Event);
+		event->setType("SyncMap");
+				event->setScope(outScope);
+
 		{
 			rsb::EventPtr primaryEvent = primaryQueue->pop();
 			RSCTRACE(logger, "Received primary event " << primaryEvent);
 			(*message)[primaryEvent->getScope()].push_back(primaryEvent);
+			event->addCause(primaryEvent->getEventId());
 		}
 
 		for (set<rsb::Scope>::const_iterator scopeIt =
@@ -236,12 +241,10 @@ int main(int argc, char **argv) {
 			rsb::EventPtr supEvent = supplementaryQueues[*scopeIt]->pop();
 			RSCTRACE(logger, "Received supplementary event (" << *scopeIt << ") " << supEvent);
 			(*message)[supEvent->getScope()].push_back(supEvent);
+			event->addCause(supEvent->getEventId());
 
 		}
 
-		rsb::EventPtr event(new rsb::Event);
-		event->setType("SyncMap");
-		event->setScope(outScope);
 		event->setData(message);
 		informer->publish(event);
 
