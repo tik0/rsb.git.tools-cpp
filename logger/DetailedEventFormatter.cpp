@@ -49,9 +49,8 @@ EventFormatter* DetailedEventFormatter::create(const Properties &/*props*/) {
 
 void DetailedEventFormatter::format(ostream &stream, EventPtr event) {
     stream << "Event" << std::endl
-           << "  Scope           " << event->getScope()->toString() << std::endl
-           << "  Id              " << event->getId().getIdAsString() << std::endl
-           << "  Sequence Number " << event->getSequenceNumber() << std::endl
+           << "  Scope           " << event->getScopePtr()->toString() << std::endl
+           << "  Id              " << event->getEventId() << std::endl
            << "  Type            " << event->getType() << std::endl
            << "  Origin          " << event->getMetaData().getSenderId().getIdAsString() << std::endl;
 
