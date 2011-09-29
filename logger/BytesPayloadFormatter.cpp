@@ -34,52 +34,52 @@ using namespace rsc::runtime;
 using namespace rsb;
 
 BytesPayloadFormatter::BytesPayloadFormatter(unsigned int indent,
-					       unsigned int maxLines,
-					       unsigned int maxColumns):
+                           unsigned int maxLines,
+                           unsigned int maxColumns):
     indent(indent), maxLines(maxLines), maxColumns(maxColumns) {
 }
 
 PayloadFormatter* BytesPayloadFormatter::create(const Properties &props) {
     return new BytesPayloadFormatter(props.get<unsigned int>("indent",     2),
-				      props.get<unsigned int>("maxLines",   4),
-				      props.get<unsigned int>("maxColumns", 79));
+                      props.get<unsigned int>("maxLines",   4),
+                      props.get<unsigned int>("maxColumns", 79));
 }
 
 string BytesPayloadFormatter::getExtraTypeInfo(EventPtr event) const {
-  boost::shared_ptr<string> data = boost::static_pointer_cast<string>(event->getData());
+    boost::shared_ptr<string> data = boost::static_pointer_cast<string>(event->getData());
 
-  return str(boost::format("length %1%") % data->size());
+    return str(boost::format("length %1%") % data->size());
 }
 
 void BytesPayloadFormatter::format(ostream &stream, EventPtr event) {
     boost::shared_ptr<string> data = boost::static_pointer_cast<string>(event->getData());
 
-    unsigned int	   line   = 0;
-    unsigned int	   column = this->indent;
-    unsigned int	   offset = 0;
+    unsigned int       line   = 0;
+    unsigned int       column = this->indent;
+    unsigned int       offset = 0;
     string::const_iterator it     = data->begin();
 
     ios_all_saver saver(stream);
 
     for (; (it != data->end())
-	     && (line < this->maxLines)
-	     && ((line < (this->maxLines - 1))
-		 || (column < (this->maxColumns - 4)));
-	 ++it, ++offset) {
-	if (column == this->indent) {
-	    stream << "0x" << setw(4) << setfill('0') << right << hex << offset << " ";
-	    column += 7;
-	}
+         && (line < this->maxLines)
+         && ((line < (this->maxLines - 1))
+         || (column < (this->maxColumns - 4)));
+         ++it, ++offset) {
+        if (column == this->indent) {
+            stream << "0x" << setw(4) << setfill('0') << right << hex << offset << " ";
+            column += 7;
+        }
 
-	stream << setw(2) << hex << static_cast<unsigned int>(static_cast<unsigned char>(*it)) << " ";
-	column += 3;
-	if (column >= (this->maxColumns - 3)) {
-	    column = this->indent;
-	    ++line;
-	    stream << endl << string(this->indent, ' ');
-	}
+        stream << setw(2) << hex << static_cast<unsigned int>(static_cast<unsigned char>(*it)) << " ";
+        column += 3;
+        if (column >= (this->maxColumns - 3)) {
+            column = this->indent;
+            ++line;
+            stream << endl << string(this->indent, ' ');
+        }
     }
     if (it != data->end()) {
-	stream << "...";
+        stream << "...";
     }
 }
