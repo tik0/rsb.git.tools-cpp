@@ -30,7 +30,6 @@
 #include <rsb/Factory.h>
 #include <rsb/Listener.h>
 #include <rsb/Scope.h>
-#include <rsb/converter/ByteArrayConverter.h>
 #include <rsb/converter/Converter.h>
 #include <rsb/converter/ConverterSelectionStrategy.h>
 #include <rsb/converter/PredicateConverterList.h>
@@ -40,6 +39,7 @@
 #include <rsc/runtime/ContainerIO.h>
 #include <rsc/threading/SynchronizedQueue.h>
 
+#include "SchemaAndByteArrayConverter.h"
 #include "SyncMapConverter.h"
 
 using namespace std;
@@ -133,7 +133,7 @@ void configureConversion() {
 					rsb::converter::ConverterPredicatePtr(
 							new rsb::converter::AlwaysApplicable()),
 					rsb::converter::Converter<string>::Ptr(
-							new rsb::converter::ByteArrayConverter())));
+							new SchemaAndByteArrayConverter())));
 	rsb::converter::ConverterSelectionStrategy<string>::Ptr selectionStrategy(
 			new rsb::converter::PredicateConverterList<string>(
 					converters.begin(), converters.end()));
@@ -176,7 +176,7 @@ rsb::ParticipantConfig createInformerConfig() {
 int main(int argc, char **argv) {
 
 	rsc::logging::LoggerFactory::getInstance()->reconfigure(
-			rsc::logging::Logger::TRACE);
+			rsc::logging::Logger::LEVEL_TRACE);
 
 	bool parsed = parseOptions(argc, argv);
 	if (!parsed) {
