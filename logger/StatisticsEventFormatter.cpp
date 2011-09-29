@@ -50,11 +50,11 @@ namespace ac = boost::accumulators;
 //
 
 typedef ac::accumulator_set<double,
-			    ac::features< ac::tag::mean,
-					  ac::tag::variance(ac::lazy) > > StatsType;
+                            ac::features< ac::tag::mean,
+                                          ac::tag::variance(ac::lazy) > > StatsType;
 
 typedef boost::date_time::microsec_clock<boost::posix_time::ptime>        msecsClock;
-typedef boost::posix_time::ptime				          timestamp;
+typedef boost::posix_time::ptime                                          timestamp;
 typedef boost::date_time::c_local_adjustor<ptime>                         local_adj;
 
 class Time: public Quantity {
@@ -84,7 +84,7 @@ public:
         ios_all_saver saver(stream);
 
         stream <<fixed << setprecision(2) << right << setw(7) << ac::mean(this->stats)
-	       << " ±"
+               << " ±"
                << setw(7) << sqrt(ac::variance(this->stats));
     }
 protected:
@@ -135,7 +135,7 @@ private:
 //
 
 StatisticsEventFormatter::StatisticsEventFormatter(ostream &stream,
-						   double   printFrequency):
+                                                   double   printFrequency):
     stream(stream), lines(0), printFrequency(printFrequency) {
     this->quantities.push_back(make_pair("Time",    QuantityPtr(new Time())));
     this->quantities.push_back(make_pair("Latency", QuantityPtr(new Latency())));
@@ -151,15 +151,15 @@ StatisticsEventFormatter::~StatisticsEventFormatter() {
 
 EventFormatter* StatisticsEventFormatter::create(const Properties &props) {
     return new StatisticsEventFormatter(*props.get<ostream*>("stream"),
-					props.get<double>("print-frequency", 1.0));
+                                        props.get<double>("print-frequency", 1.0));
 }
 
 void StatisticsEventFormatter::format(ostream &/*stream*/, EventPtr event) {
     recursive_mutex::scoped_lock lock(this->quantitiesMutex);
 
     for (QuantitiesMap::iterator it = this->quantities.begin();
-	 it != this->quantities.end(); ++it) {
-	it->second->update(event);
+         it != this->quantities.end(); ++it) {
+        it->second->update(event);
     }
 }
 
@@ -167,14 +167,14 @@ void StatisticsEventFormatter::printStats() {
     recursive_mutex::scoped_lock lock(this->quantitiesMutex);
 
     if (((this->lines) % 24) == 0) {
-	printHeader();
+        printHeader();
     }
 
     for (QuantitiesMap::iterator it = this->quantities.begin();
-	 it != this->quantities.end(); ++it) {
-	printQuantity(it->second);
-	this->stream << "|";
-	it->second->reset();
+         it != this->quantities.end(); ++it) {
+        printQuantity(it->second);
+        this->stream << "|";
+        it->second->reset();
     }
     this->stream << endl;
     ++this->lines;
@@ -182,9 +182,9 @@ void StatisticsEventFormatter::printStats() {
 
 void StatisticsEventFormatter::printHeader() {
     for (QuantitiesMap::const_iterator it = this->quantities.begin();
-	 it != this->quantities.end(); ++it) {
-	this->stream << setw(it->second->getWidth()) << left << it->first
-		     << "|";
+         it != this->quantities.end(); ++it) {
+        this->stream << setw(it->second->getWidth()) << left << it->first
+                     << "|";
     }
     this->stream << endl;
     ++this->lines;
@@ -196,7 +196,7 @@ void StatisticsEventFormatter::printQuantity(QuantityPtr quantity) {
 
 void StatisticsEventFormatter::run() {
     while (!this->terminate) {
-	printStats();
-	boost::this_thread::sleep(boost::posix_time::seconds(1));
+        printStats();
+        boost::this_thread::sleep(boost::posix_time::seconds(1));
     }
 }

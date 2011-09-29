@@ -39,6 +39,6 @@ void PayloadOnlyEventFormatter::format(ostream &stream, EventPtr event) {
     PayloadFormatterPtr formatter = getPayloadFormatter(event);
     formatter->format(stream, event);
     if (this->printNewline) {
-	stream << endl;
+        stream << endl;
     }
 }

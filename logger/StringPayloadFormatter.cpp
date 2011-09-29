@@ -28,15 +28,15 @@ using namespace rsc::runtime;
 using namespace rsb;
 
 StringPayloadFormatter::StringPayloadFormatter(unsigned int indent,
-					       unsigned int maxLines,
-					       unsigned int maxColumns):
+                                               unsigned int maxLines,
+                                               unsigned int maxColumns):
     indent(indent), maxLines(maxLines), maxColumns(maxColumns) {
 }
 
 PayloadFormatter* StringPayloadFormatter::create(const Properties &props) {
     return new StringPayloadFormatter(props.get<unsigned int>("indent",     2),
-				      props.get<unsigned int>("maxLines",   4),
-				      props.get<unsigned int>("maxColumns", 79));
+                                      props.get<unsigned int>("maxLines",   4),
+                                      props.get<unsigned int>("maxColumns", 79));
 }
 
 string StringPayloadFormatter::getExtraTypeInfo(EventPtr event) const {
@@ -48,9 +48,9 @@ string StringPayloadFormatter::getExtraTypeInfo(EventPtr event) const {
 void StringPayloadFormatter::format(ostream &stream, EventPtr event) {
     shared_ptr<string> data = boost::static_pointer_cast<string>(event->getData());
     if (!data) {
-	stream << "Failed to decode event data as string." << endl
-	       << "  Event: " << event << endl;
-	return;
+        stream << "Failed to decode event data as string." << endl
+               << "  Event: " << event << endl;
+        return;
     }
 
     /** TODO(jmoringe): this breaks down if data contains newlines, tabs etc. */
@@ -59,24 +59,24 @@ void StringPayloadFormatter::format(ostream &stream, EventPtr event) {
     string::const_iterator it;
 
     for (it = data->begin();
-	 (it != data->end())
-	     && (line < this->maxLines)
-	     && ((line < (this->maxLines - 1))
-		 || (column < (this->maxColumns - 3)));
-	 ++it, ++column) {
-	char c = *it;
-	if (c > 31) {
-	    stream << c;
-	} else {
-	    stream << "?";
-	}
-	if (column == (this->maxColumns - 1)) {
-	    column = this->indent - 1;
-	    ++line;
-	    stream << endl << string(this->indent, ' ');
-	}
+         (it != data->end())
+             && (line < this->maxLines)
+             && ((line < (this->maxLines - 1))
+                 || (column < (this->maxColumns - 3)));
+         ++it, ++column) {
+        char c = *it;
+        if (c > 31) {
+            stream << c;
+        } else {
+            stream << "?";
+        }
+        if (column == (this->maxColumns - 1)) {
+            column = this->indent - 1;
+            ++line;
+            stream << endl << string(this->indent, ' ');
+        }
     }
     if (it != data->end()) {
-	stream << "...";
+        stream << "...";
     }
 }

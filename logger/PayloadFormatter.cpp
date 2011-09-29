@@ -45,7 +45,7 @@ PayloadFormatterPtr getPayloadFormatter(EventPtr event) {
     PayloadFormatterFactory &factory = PayloadFormatterFactory::getInstance();
 
     try {
-	return PayloadFormatterPtr(factory.createInst(event->getType()));
+        return PayloadFormatterPtr(factory.createInst(event->getType()));
     } catch (const NoSuchImpl&) {
         return PayloadFormatterPtr(new BytesPayloadFormatter());
     }
