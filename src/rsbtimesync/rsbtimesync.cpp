@@ -39,8 +39,10 @@
 #include <rsc/runtime/ContainerIO.h>
 #include <rsc/threading/SynchronizedQueue.h>
 
+#include "FirstMatchStrategy.h"
 #include "SchemaAndByteArrayConverter.h"
 #include "SyncMapConverter.h"
+#include "SyncStrategy.h"
 
 using namespace std;
 using namespace rsbtimesync;
@@ -56,6 +58,8 @@ rsc::logging::LoggerPtr logger = rsc::logging::Logger::getLogger("rsbtimesync");
 rsb::Scope outScope;
 rsb::Scope primaryScope;
 set<rsb::Scope> supplementaryScopes;
+
+SyncStrategyPtr strategy(new FirstMatchStrategy);
 
 bool parseOptions(int argc, char **argv) {
 
@@ -184,69 +188,62 @@ int main(int argc, char **argv) {
 		return EXIT_FAILURE;
 	}
 
-	// TODO hacky stuff begins
-
 	configureConversion();
-
-	rsb::ListenerPtr primaryListener =
-			rsb::Factory::getInstance().createListener(primaryScope);
-	boost::shared_ptr<rsc::threading::SynchronizedQueue<rsb::EventPtr> >
-			primaryQueue(
-					new rsc::threading::SynchronizedQueue<rsb::EventPtr>(1));
-	primaryListener->addHandler(
-			rsb::HandlerPtr(new rsb::EventQueuePushHandler(primaryQueue)));
-
-	map<rsb::Scope, rsb::ListenerPtr> supplementaryListeners;
-	map<rsb::Scope, boost::shared_ptr<rsc::threading::SynchronizedQueue<
-			rsb::EventPtr> > > supplementaryQueues;
-	for (set<rsb::Scope>::const_iterator scopeIt = supplementaryScopes.begin(); scopeIt
-			!= supplementaryScopes.end(); ++scopeIt) {
-
-		supplementaryListeners[*scopeIt]
-				= rsb::Factory::getInstance().createListener(*scopeIt);
-		supplementaryQueues[*scopeIt].reset(
-				new rsc::threading::SynchronizedQueue<rsb::EventPtr>(1));
-		supplementaryListeners[*scopeIt]->addHandler(
-				rsb::HandlerPtr(
-						new rsb::EventQueuePushHandler(
-								supplementaryQueues[*scopeIt])));
-
-	}
 
 	rsb::Informer<void>::Ptr informer =
 			rsb::Factory::getInstance().createInformer<void> (outScope,
 					createInformerConfig(), "SyncMap");
 
+	// configure selected sync strategy
+	strategy->initializeChannels(primaryScope, supplementaryScopes);
+	// TODO set handler
+
+	rsb::ListenerPtr primaryListener =
+			rsb::Factory::getInstance().createListener(primaryScope);
+	primaryListener->addHandler(strategy);
+
+	map<rsb::Scope, rsb::ListenerPtr> supplementaryListeners;
+	for (set<rsb::Scope>::const_iterator scopeIt = supplementaryScopes.begin(); scopeIt
+			!= supplementaryScopes.end(); ++scopeIt) {
+
+		supplementaryListeners[*scopeIt]
+				= rsb::Factory::getInstance().createListener(*scopeIt);
+		supplementaryListeners[*scopeIt]->addHandler(strategy);
+
+	}
+
 	// main loop
 	while (true) {
 
-		boost::shared_ptr<map<rsb::Scope, vector<rsb::EventPtr> > > message(
-				new map<rsb::Scope, vector<rsb::EventPtr> > );
+//		boost::shared_ptr<map<rsb::Scope, vector<rsb::EventPtr> > > message(
+//				new map<rsb::Scope, vector<rsb::EventPtr> > );
+//
+//		rsb::EventPtr event(new rsb::Event);
+//		event->setType("SyncMap");
+//				event->setScope(outScope);
+//
+//		{
+//			rsb::EventPtr primaryEvent = primaryQueue->pop();
+//			RSCTRACE(logger, "Received primary event " << primaryEvent);
+//			(*message)[primaryEvent->getScope()].push_back(primaryEvent);
+//			event->addCause(primaryEvent->getEventId());
+//		}
+//
+//		for (set<rsb::Scope>::const_iterator scopeIt =
+//				supplementaryScopes.begin(); scopeIt
+//				!= supplementaryScopes.end(); ++scopeIt) {
+//
+//			rsb::EventPtr supEvent = supplementaryQueues[*scopeIt]->pop();
+//			RSCTRACE(logger, "Received supplementary event (" << *scopeIt << ") " << supEvent);
+//			(*message)[supEvent->getScope()].push_back(supEvent);
+//			event->addCause(supEvent->getEventId());
+//
+//		}
+//
+//		event->setData(message);
+//		informer->publish(event);
 
-		rsb::EventPtr event(new rsb::Event);
-		event->setType("SyncMap");
-				event->setScope(outScope);
-
-		{
-			rsb::EventPtr primaryEvent = primaryQueue->pop();
-			RSCTRACE(logger, "Received primary event " << primaryEvent);
-			(*message)[primaryEvent->getScope()].push_back(primaryEvent);
-			event->addCause(primaryEvent->getEventId());
-		}
-
-		for (set<rsb::Scope>::const_iterator scopeIt =
-				supplementaryScopes.begin(); scopeIt
-				!= supplementaryScopes.end(); ++scopeIt) {
-
-			rsb::EventPtr supEvent = supplementaryQueues[*scopeIt]->pop();
-			RSCTRACE(logger, "Received supplementary event (" << *scopeIt << ") " << supEvent);
-			(*message)[supEvent->getScope()].push_back(supEvent);
-			event->addCause(supEvent->getEventId());
-
-		}
-
-		event->setData(message);
-		informer->publish(event);
+		boost::this_thread::sleep(boost::posix_time::seconds(10));
 
 	}
 
