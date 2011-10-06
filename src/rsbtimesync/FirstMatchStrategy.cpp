@@ -69,19 +69,23 @@ void FirstMatchStrategy::handle(rsb::EventPtr event) {
 		}
 	}
 
+	rsb::EventPtr resultEvent = handler->createEvent();
+
 	// all buffers are filled, we can emit an event
 	boost::shared_ptr<SyncMapConverter::DataMap> message(
 			new SyncMapConverter::DataMap);
 	(*message)[primaryEvent->getScope()].push_back(primaryEvent);
+	resultEvent->addCause(primaryEvent->getEventId());
 	primaryEvent.reset();
 	for (std::map<rsb::Scope, rsb::EventPtr>::iterator it =
 			supplementaryEvents.begin(); it != supplementaryEvents.end(); ++it) {
 		(*message)[it->second->getScope()].push_back(it->second);
+		resultEvent->addCause(it->second->getEventId());
 		it->second.reset();
 	}
+	resultEvent->setData(message);
 
-	handler->handle(message);
-
+	handler->handle(resultEvent);
 
 }
 

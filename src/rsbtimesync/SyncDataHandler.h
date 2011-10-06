@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <rsb/eventprocessing/Handler.h>
+
 #include "SyncMapConverter.h"
 
 namespace rsbtimesync {
@@ -28,13 +30,13 @@ namespace rsbtimesync {
  *
  * @author jwienke
  */
-class SyncDataHandler {
+class SyncDataHandler: public rsb::eventprocessing::Handler {
 public:
 
 	SyncDataHandler();
 	virtual ~SyncDataHandler();
 
-	virtual void handle(boost::shared_ptr<SyncMapConverter::DataMap> data) = 0;
+	virtual rsb::EventPtr createEvent() = 0;
 
 };
 

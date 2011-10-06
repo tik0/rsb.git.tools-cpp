@@ -188,10 +188,13 @@ public:
 	virtual ~InformingSyncDataHandler() {
 	}
 
-	void handle(boost::shared_ptr<SyncMapConverter::DataMap> data) {
+	rsb::EventPtr createEvent() {
 		rsb::EventPtr event = informer->createEvent();
 		event->setType("SyncMap");
-		event->setData(data);
+		return event;
+	}
+
+	void handle(rsb::EventPtr event) {
 		informer->publish(event);
 	}
 
