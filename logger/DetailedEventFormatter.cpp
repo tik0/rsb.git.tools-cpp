@@ -76,6 +76,15 @@ void DetailedEventFormatter::format(ostream &stream, EventPtr event) {
         }
     }
 
+    set<EventId> causes = event->getCauses();
+    if (!causes.empty()) {
+	stream << "Causes" << std::endl;
+	for (set<EventId>::iterator it = causes.begin();
+	     it != causes.end(); ++it) {
+	    stream << "  " << *it << std::endl;
+	}
+    }
+
     PayloadFormatterPtr formatter = getPayloadFormatter(event);
     stream << "Payload (" << event->getType();
     string extra = formatter->getExtraTypeInfo(event);
