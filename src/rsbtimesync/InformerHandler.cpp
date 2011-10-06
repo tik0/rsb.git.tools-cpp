@@ -17,37 +17,22 @@
  *
  * ============================================================ */
 
-#pragma once
+#include "InformerHandler.h"
 
-#include "SyncStrategy.h"
+using namespace std;
 
 namespace rsbtimesync {
 
-/**
- * @author jwienke
- */
-class FirstMatchStrategy: public SyncStrategy {
-public:
-	FirstMatchStrategy();
-	virtual ~FirstMatchStrategy();
-
-	std::string getClassName() const;
-
-	virtual void setSyncDataHandler(SyncDataHandlerPtr handler);
-
-	virtual void initializeChannels(const rsb::Scope &primaryScope,
-			const std::set<rsb::Scope> &subsidiaryScopes);
-
-	virtual void handle(rsb::EventPtr event);
-
-private:
-	boost::recursive_mutex mutex;
-	rsb::EventPtr primaryEvent;
-	std::map<rsb::Scope, rsb::EventPtr> supplementaryEvents;
-	rsb::Scope primaryScope;
-	SyncDataHandlerPtr handler;
-
-};
-
+InformerHandler::InformerHandler(rsb::InformerBasePtr informer,
+		const string &method) :
+	rsb::Handler(method), informer(informer) {
 }
 
+InformerHandler::~InformerHandler() {
+}
+
+void InformerHandler::handle(rsb::EventPtr event) {
+	informer->publish(event);
+}
+
+}

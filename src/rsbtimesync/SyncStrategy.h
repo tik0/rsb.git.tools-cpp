@@ -27,6 +27,8 @@
 #include <rsb/Scope.h>
 #include <rsb/Handler.h>
 
+#include "SyncDataHandler.h"
+
 namespace rsbtimesync {
 
 /**
@@ -45,8 +47,8 @@ public:
 	 *
 	 * @param handler handler to set
 	 */
-	virtual void setSyncEventHandler(
-			rsb::eventprocessing::HandlerPtr handler) = 0;
+	virtual void setSyncDataHandler(
+			SyncDataHandlerPtr handler) = 0;
 
 	virtual void initializeChannels(const rsb::Scope &primaryScope,
 			const std::set<rsb::Scope> &subsidiaryScopes) = 0;

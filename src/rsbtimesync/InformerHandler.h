@@ -19,33 +19,26 @@
 
 #pragma once
 
-#include "SyncStrategy.h"
+#include <rsb/Handler.h>
+#include <rsb/Informer.h>
 
 namespace rsbtimesync {
 
 /**
+ * A handler which notifies an Informer for each new event.
+ *
  * @author jwienke
  */
-class FirstMatchStrategy: public SyncStrategy {
+class InformerHandler: public rsb::Handler {
 public:
-	FirstMatchStrategy();
-	virtual ~FirstMatchStrategy();
-
-	std::string getClassName() const;
-
-	virtual void setSyncDataHandler(SyncDataHandlerPtr handler);
-
-	virtual void initializeChannels(const rsb::Scope &primaryScope,
-			const std::set<rsb::Scope> &subsidiaryScopes);
+	InformerHandler(rsb::InformerBasePtr informer,
+			const std::string &method = "");
+	virtual ~InformerHandler();
 
 	virtual void handle(rsb::EventPtr event);
 
 private:
-	boost::recursive_mutex mutex;
-	rsb::EventPtr primaryEvent;
-	std::map<rsb::Scope, rsb::EventPtr> supplementaryEvents;
-	rsb::Scope primaryScope;
-	SyncDataHandlerPtr handler;
+	rsb::InformerBasePtr informer;
 
 };
 

@@ -40,6 +40,7 @@
 #include <rsc/threading/SynchronizedQueue.h>
 
 #include "FirstMatchStrategy.h"
+#include "InformerHandler.h"
 #include "SchemaAndByteArrayConverter.h"
 #include "SyncMapConverter.h"
 #include "SyncStrategy.h"
@@ -177,6 +178,28 @@ rsb::ParticipantConfig createInformerConfig() {
 
 }
 
+class InformingSyncDataHandler: public SyncDataHandler {
+public:
+
+	InformingSyncDataHandler(rsb::InformerBasePtr informer) :
+		informer(informer) {
+	}
+
+	virtual ~InformingSyncDataHandler() {
+	}
+
+	void handle(boost::shared_ptr<SyncMapConverter::DataMap> data) {
+		rsb::EventPtr event = informer->createEvent();
+		event->setType("SyncMap");
+		event->setData(data);
+		informer->publish(event);
+	}
+
+private:
+	rsb::InformerBasePtr informer;
+
+};
+
 int main(int argc, char **argv) {
 
 	rsc::logging::LoggerFactory::getInstance()->reconfigure(
@@ -193,10 +216,11 @@ int main(int argc, char **argv) {
 	rsb::Informer<void>::Ptr informer =
 			rsb::Factory::getInstance().createInformer<void> (outScope,
 					createInformerConfig(), "SyncMap");
+	SyncDataHandlerPtr handler(new InformingSyncDataHandler(informer));
 
 	// configure selected sync strategy
 	strategy->initializeChannels(primaryScope, supplementaryScopes);
-	// TODO set handler
+	strategy->setSyncDataHandler(handler);
 
 	rsb::ListenerPtr primaryListener =
 			rsb::Factory::getInstance().createListener(primaryScope);
@@ -215,33 +239,33 @@ int main(int argc, char **argv) {
 	// main loop
 	while (true) {
 
-//		boost::shared_ptr<map<rsb::Scope, vector<rsb::EventPtr> > > message(
-//				new map<rsb::Scope, vector<rsb::EventPtr> > );
-//
-//		rsb::EventPtr event(new rsb::Event);
-//		event->setType("SyncMap");
-//				event->setScope(outScope);
-//
-//		{
-//			rsb::EventPtr primaryEvent = primaryQueue->pop();
-//			RSCTRACE(logger, "Received primary event " << primaryEvent);
-//			(*message)[primaryEvent->getScope()].push_back(primaryEvent);
-//			event->addCause(primaryEvent->getEventId());
-//		}
-//
-//		for (set<rsb::Scope>::const_iterator scopeIt =
-//				supplementaryScopes.begin(); scopeIt
-//				!= supplementaryScopes.end(); ++scopeIt) {
-//
-//			rsb::EventPtr supEvent = supplementaryQueues[*scopeIt]->pop();
-//			RSCTRACE(logger, "Received supplementary event (" << *scopeIt << ") " << supEvent);
-//			(*message)[supEvent->getScope()].push_back(supEvent);
-//			event->addCause(supEvent->getEventId());
-//
-//		}
-//
-//		event->setData(message);
-//		informer->publish(event);
+		//		boost::shared_ptr<map<rsb::Scope, vector<rsb::EventPtr> > > message(
+		//				new map<rsb::Scope, vector<rsb::EventPtr> > );
+		//
+		//		rsb::EventPtr event(new rsb::Event);
+		//		event->setType("SyncMap");
+		//		event->setScope(outScope);
+		//
+		//		{
+		//			rsb::EventPtr primaryEvent = primaryQueue->pop();
+		//			RSCTRACE(logger, "Received primary event " << primaryEvent);
+		//			(*message)[primaryEvent->getScope()].push_back(primaryEvent);
+		//			event->addCause(primaryEvent->getEventId());
+		//		}
+		//
+		//		for (set<rsb::Scope>::const_iterator scopeIt =
+		//				supplementaryScopes.begin(); scopeIt
+		//				!= supplementaryScopes.end(); ++scopeIt) {
+		//
+		//			rsb::EventPtr supEvent = supplementaryQueues[*scopeIt]->pop();
+		//			RSCTRACE(logger, "Received supplementary event (" << *scopeIt << ") " << supEvent);
+		//			(*message)[supEvent->getScope()].push_back(supEvent);
+		//			event->addCause(supEvent->getEventId());
+		//
+		//		}
+		//
+		//		event->setData(message);
+		//		informer->publish(event);
 
 		boost::this_thread::sleep(boost::posix_time::seconds(10));
 

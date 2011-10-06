@@ -17,37 +17,17 @@
  *
  * ============================================================ */
 
-#pragma once
-
-#include "SyncStrategy.h"
+#include "SyncDataHandler.h"
 
 namespace rsbtimesync {
 
-/**
- * @author jwienke
- */
-class FirstMatchStrategy: public SyncStrategy {
-public:
-	FirstMatchStrategy();
-	virtual ~FirstMatchStrategy();
-
-	std::string getClassName() const;
-
-	virtual void setSyncDataHandler(SyncDataHandlerPtr handler);
-
-	virtual void initializeChannels(const rsb::Scope &primaryScope,
-			const std::set<rsb::Scope> &subsidiaryScopes);
-
-	virtual void handle(rsb::EventPtr event);
-
-private:
-	boost::recursive_mutex mutex;
-	rsb::EventPtr primaryEvent;
-	std::map<rsb::Scope, rsb::EventPtr> supplementaryEvents;
-	rsb::Scope primaryScope;
-	SyncDataHandlerPtr handler;
-
-};
+SyncDataHandler::SyncDataHandler() {
+	// TODO Auto-generated constructor stub
 
 }
 
+SyncDataHandler::~SyncDataHandler() {
+	// TODO Auto-generated destructor stub
+}
+
+}

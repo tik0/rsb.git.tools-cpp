@@ -19,35 +19,26 @@
 
 #pragma once
 
-#include "SyncStrategy.h"
+#include "SyncMapConverter.h"
 
 namespace rsbtimesync {
 
 /**
+ * A handler for sync data.
+ *
  * @author jwienke
  */
-class FirstMatchStrategy: public SyncStrategy {
+class SyncDataHandler {
 public:
-	FirstMatchStrategy();
-	virtual ~FirstMatchStrategy();
 
-	std::string getClassName() const;
+	SyncDataHandler();
+	virtual ~SyncDataHandler();
 
-	virtual void setSyncDataHandler(SyncDataHandlerPtr handler);
-
-	virtual void initializeChannels(const rsb::Scope &primaryScope,
-			const std::set<rsb::Scope> &subsidiaryScopes);
-
-	virtual void handle(rsb::EventPtr event);
-
-private:
-	boost::recursive_mutex mutex;
-	rsb::EventPtr primaryEvent;
-	std::map<rsb::Scope, rsb::EventPtr> supplementaryEvents;
-	rsb::Scope primaryScope;
-	SyncDataHandlerPtr handler;
+	virtual void handle(boost::shared_ptr<SyncMapConverter::DataMap> data) = 0;
 
 };
+
+typedef boost::shared_ptr<SyncDataHandler> SyncDataHandlerPtr;
 
 }
 
