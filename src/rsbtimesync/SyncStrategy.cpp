@@ -29,4 +29,12 @@ SyncStrategy::SyncStrategy() {
 SyncStrategy::~SyncStrategy() {
 }
 
+void SyncStrategy::provideOptions(boost::program_options::options_description &/*optionDescription*/) {
+
+}
+
+void SyncStrategy::handleOptions(const boost::program_options::variables_map &/*options*/) {
+
+}
+
 }

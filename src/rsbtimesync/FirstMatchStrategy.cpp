@@ -33,6 +33,10 @@ string FirstMatchStrategy::getClassName() const {
 	return "FirstMatchStrategy";
 }
 
+string FirstMatchStrategy::getKey() const {
+	return "firstmatch";
+}
+
 void FirstMatchStrategy::setSyncDataHandler(SyncDataHandlerPtr handler) {
 	this->handler = handler;
 }
@@ -87,6 +91,18 @@ void FirstMatchStrategy::handle(rsb::EventPtr event) {
 
 	handler->handle(resultEvent);
 
+}
+
+void FirstMatchStrategy::provideOptions(
+		boost::program_options::options_description &optionDescription) {
+	optionDescription.add_options()((getKey() + "-foo").c_str(), "do not use this, it's a test");
+}
+
+void FirstMatchStrategy::handleOptions(
+		const boost::program_options::variables_map &options) {
+	if (options.count((getKey() + "-foo").c_str())) {
+		throw invalid_argument("You should not use this option!");
+	}
 }
 
 }

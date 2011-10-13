@@ -53,6 +53,7 @@ const char *OPTION_HELP = "help";
 const char *OPTION_OUT_SCOPE = "outscope";
 const char *OPTION_PRIMARY_SCOPE = "primscope";
 const char *OPTION_SUPPLEMENTARY_SCOPE = "supscope";
+const char *OPTION_STRATEGY = "strategy";
 
 rsc::logging::LoggerPtr logger = rsc::logging::Logger::getLogger("rsbtimesync");
 
@@ -60,9 +61,25 @@ rsb::Scope outScope;
 rsb::Scope primaryScope;
 set<rsb::Scope> supplementaryScopes;
 
-SyncStrategyPtr strategy(new FirstMatchStrategy);
+map<string, SyncStrategyPtr> strategiesByName;
+SyncStrategyPtr strategy;
+
+void registerStrategies() {
+
+	SyncStrategyPtr firstMatch(new FirstMatchStrategy);
+	strategiesByName[firstMatch->getKey()] = firstMatch;
+
+}
 
 bool parseOptions(int argc, char **argv) {
+
+	stringstream strategiesDescription;
+	strategiesDescription << "Specifies the strategy to be used for syncing {";
+	for (map<string, SyncStrategyPtr>::iterator strategyIt =
+			strategiesByName.begin(); strategyIt != strategiesByName.end(); ++strategyIt) {
+		strategiesDescription << " " << strategyIt->first;
+	}
+	strategiesDescription << " }";
 
 	// Declare the supported options.
 	po::options_description desc("Allowed options");
@@ -71,7 +88,14 @@ bool parseOptions(int argc, char **argv) {
 			"output scope for the synchronized results")(OPTION_PRIMARY_SCOPE,
 			po::value<std::string>(), "primary scope for the synchronization")(
 			OPTION_SUPPLEMENTARY_SCOPE, po::value<vector<string> >(),
-			"supplemental scope for the synchronization");
+			"supplemental scope for the synchronization")(OPTION_STRATEGY,
+			po::value<std::string>(), strategiesDescription.str().c_str());
+
+	// also for the strategies
+	for (map<string, SyncStrategyPtr>::iterator strategyIt =
+			strategiesByName.begin(); strategyIt != strategiesByName.end(); ++strategyIt) {
+		strategyIt->second->provideOptions(desc);
+	}
 
 	// positional arguments will got into supplementary scopes
 	po::positional_options_description p;
@@ -119,10 +143,30 @@ bool parseOptions(int argc, char **argv) {
 		return false;
 	}
 
+	// finally, select the strategy and process its options
+	if (!vm.count(OPTION_STRATEGY)) {
+		cerr << "No sync strategy specified." << endl;
+		return false;
+	}
+	string strategyKey = vm[OPTION_STRATEGY].as<string> ();
+	if (!strategiesByName.count(strategyKey)) {
+		cerr << "Unknown sync strategy '" << strategyKey << "' requested." << endl;
+		return false;
+	}
+	strategy = strategiesByName[strategyKey];
+	try {
+		strategy->handleOptions(vm);
+	} catch (invalid_argument &e) {
+		cerr << "Error parsing arguments for strategy " << strategyKey << ": "
+				<< e.what() << endl;
+		return false;
+	}
+
 	RSCINFO(logger, "Configured:\n"
 			"  " << OPTION_OUT_SCOPE << " = " << outScope << "\n"
 			"  " << OPTION_PRIMARY_SCOPE << " = " << primaryScope << "\n"
-			"  " << OPTION_SUPPLEMENTARY_SCOPE << " = " << supplementaryScopes);
+			"  " << OPTION_SUPPLEMENTARY_SCOPE << " = " << supplementaryScopes << "\n"
+			"  " << OPTION_STRATEGY << " = " << strategy->getKey());
 
 	return true;
 
@@ -207,6 +251,8 @@ int main(int argc, char **argv) {
 
 	rsc::logging::LoggerFactory::getInstance()->reconfigure(
 			rsc::logging::Logger::LEVEL_TRACE);
+
+	registerStrategies();
 
 	bool parsed = parseOptions(argc, argv);
 	if (!parsed) {

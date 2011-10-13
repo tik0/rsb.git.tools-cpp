@@ -22,6 +22,7 @@
 #include <set>
 
 #include <boost/shared_ptr.hpp>
+#include <boost/program_options.hpp>
 
 #include <rsb/Event.h>
 #include <rsb/Scope.h>
@@ -43,15 +44,41 @@ public:
 	virtual ~SyncStrategy();
 
 	/**
+	 * Returns a command line-friendly name for this strategy.
+	 * @return string without spaces
+	 */
+	virtual std::string getKey() const = 0;
+
+	/**
 	 * Sets the handler which has to be called in order to send an event.
 	 *
 	 * @param handler handler to set
 	 */
-	virtual void setSyncDataHandler(
-			SyncDataHandlerPtr handler) = 0;
+	virtual void setSyncDataHandler(SyncDataHandlerPtr handler) = 0;
 
 	virtual void initializeChannels(const rsb::Scope &primaryScope,
 			const std::set<rsb::Scope> &subsidiaryScopes) = 0;
+
+	/**
+	 * This method is called in order to add new command line options this
+	 * strategy may use. Please make sure that all options you provide have a
+	 * prefix that makes their name unique and identifiable for this strategy.
+	 * The best solution is probably to use the result of #getKey.
+	 *
+	 * @param optionDescription option object to add options add.
+	 */
+	virtual void provideOptions(
+			boost::program_options::options_description &optionDescription);
+
+	/**
+	 * Method to handle parsed options from the command line.
+	 *
+	 * @param options parsed options
+	 * @throw std::invalid_argument error in parsed options. Exception text will
+	 *                              be displayed to the user
+	 */
+	virtual void handleOptions(
+			const boost::program_options::variables_map &options);
 
 };
 
