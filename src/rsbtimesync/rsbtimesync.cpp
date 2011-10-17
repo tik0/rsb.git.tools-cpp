@@ -44,6 +44,7 @@
 #include "SchemaAndByteArrayConverter.h"
 #include "SyncMapConverter.h"
 #include "SyncStrategy.h"
+#include "TimeFrameStrategy.h"
 
 using namespace std;
 using namespace rsbtimesync;
@@ -66,8 +67,14 @@ SyncStrategyPtr strategy;
 
 void registerStrategies() {
 
-	SyncStrategyPtr firstMatch(new FirstMatchStrategy);
-	strategiesByName[firstMatch->getKey()] = firstMatch;
+	{
+		SyncStrategyPtr newMatch(new FirstMatchStrategy);
+		strategiesByName[newMatch->getKey()] = newMatch;
+	}
+	{
+		SyncStrategyPtr newMatch(new TimeFrameStrategy);
+		strategiesByName[newMatch->getKey()] = newMatch;
+	}
 
 }
 
@@ -150,7 +157,8 @@ bool parseOptions(int argc, char **argv) {
 	}
 	string strategyKey = vm[OPTION_STRATEGY].as<string> ();
 	if (!strategiesByName.count(strategyKey)) {
-		cerr << "Unknown sync strategy '" << strategyKey << "' requested." << endl;
+		cerr << "Unknown sync strategy '" << strategyKey << "' requested."
+				<< endl;
 		return false;
 	}
 	strategy = strategiesByName[strategyKey];
@@ -162,11 +170,14 @@ bool parseOptions(int argc, char **argv) {
 		return false;
 	}
 
-	RSCINFO(logger, "Configured:\n"
-			"  " << OPTION_OUT_SCOPE << " = " << outScope << "\n"
-			"  " << OPTION_PRIMARY_SCOPE << " = " << primaryScope << "\n"
-			"  " << OPTION_SUPPLEMENTARY_SCOPE << " = " << supplementaryScopes << "\n"
-			"  " << OPTION_STRATEGY << " = " << strategy->getKey());
+	RSCINFO(
+			logger,
+			"Configured:\n"
+				"  " << OPTION_OUT_SCOPE << " = " << outScope << "\n"
+				"  " << OPTION_PRIMARY_SCOPE << " = " << primaryScope << "\n"
+				"  " << OPTION_SUPPLEMENTARY_SCOPE << " = "
+					<< supplementaryScopes << "\n"
+				"  " << OPTION_STRATEGY << " = " << strategy->getKey());
 
 	return true;
 
