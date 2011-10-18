@@ -19,6 +19,8 @@
 
 #include "FirstMatchStrategy.h"
 
+#include <rsb/EventId.h>
+
 using namespace std;
 
 namespace rsbtimesync {

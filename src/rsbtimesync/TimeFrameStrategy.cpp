@@ -21,6 +21,8 @@
 
 #include <boost/format.hpp>
 
+#include <rsb/MetaData.h>
+
 using namespace std;
 using namespace rsc;
 using namespace rsb;

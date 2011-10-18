@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <boost/thread/recursive_mutex.hpp>
+
 #include "SyncStrategy.h"
 
 namespace rsbtimesync {
