@@ -22,6 +22,10 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/date_time/c_local_time_adjustor.hpp>
 
+#include <rsb/Scope.h>
+#include <rsb/EventId.h>
+#include <rsb/MetaData.h>
+
 #include "PayloadFormatter.h"
 
 using namespace std;
@@ -33,7 +37,7 @@ using namespace rsc::runtime;
 
 using namespace rsb;
 
-ptime unixMicroSecnodsToPtime(uint64_t msecs) {
+ptime unixMicroSecondsToPtime(uint64_t msecs) {
     typedef boost::date_time::c_local_adjustor<ptime> local_adj;
 
     time_t time = msecs / 1000000;
@@ -57,14 +61,14 @@ void DetailedEventFormatter::format(ostream &stream, EventPtr event) {
     const MetaData& metaData = event->getMetaData();
 
     stream << "Timestamps" << std::endl
-           << "  Create  " << unixMicroSecnodsToPtime(metaData.getCreateTime()) << "+??:??" << std::endl
-           << "  Send    " << unixMicroSecnodsToPtime(metaData.getSendTime()) << "+??:??" << std::endl
-           << "  Receive " << unixMicroSecnodsToPtime(metaData.getReceiveTime()) << "+??:??" << std::endl
-           << "  Deliver " << unixMicroSecnodsToPtime(metaData.getDeliverTime()) << "+??:??" << std::endl;
+           << "  Create  " << unixMicroSecondsToPtime(metaData.getCreateTime()) << "+??:??" << std::endl
+           << "  Send    " << unixMicroSecondsToPtime(metaData.getSendTime()) << "+??:??" << std::endl
+           << "  Receive " << unixMicroSecondsToPtime(metaData.getReceiveTime()) << "+??:??" << std::endl
+           << "  Deliver " << unixMicroSecondsToPtime(metaData.getDeliverTime()) << "+??:??" << std::endl;
     for (map<string, uint64_t>::const_iterator it = metaData.userTimesBegin();
          it != metaData.userTimesEnd(); ++it) {
         stream << "  *" << left << setw(6) << it->first
-               << " " << unixMicroSecnodsToPtime(it->second) << "+??:??" << std::endl;
+               << " " << unixMicroSecondsToPtime(it->second) << "+??:??" << std::endl;
     }
 
     if (metaData.userInfosBegin() != metaData.userInfosEnd()) {
