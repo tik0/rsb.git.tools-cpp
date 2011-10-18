@@ -19,6 +19,8 @@
 
 #include "TimeFrameStrategy.h"
 
+#include <boost/format.hpp>
+
 using namespace std;
 using namespace rsc;
 using namespace rsb;
@@ -26,7 +28,12 @@ using namespace rsb;
 namespace rsbtimesync {
 
 TimeFrameStrategy::TimeFrameStrategy() :
-	OPTION_TIME_FRAME(getKey() + "-timeframe") {
+			OPTION_TIME_FRAME(getKey() + "-timeframe"),
+			OPTION_BUFFER_TIME(getKey() + "-buffer"),
+			logger(
+					rsc::logging::Logger::getLogger(
+							"rsbtimesync.TimeFrameStrategy")),
+			timeFrameMus(250000), bufferTimeMus(2 * timeFrameMus) {
 }
 
 TimeFrameStrategy::~TimeFrameStrategy() {
@@ -46,27 +53,56 @@ void TimeFrameStrategy::setSyncDataHandler(SyncDataHandlerPtr handler) {
 
 void TimeFrameStrategy::initializeChannels(const Scope &primaryScope,
 		const set<Scope> &subsidiaryScopes) {
-
+	this->primaryScope = primaryScope;
+	this->subsidiaryScopes = subsidiaryScopes;
 }
 
 void TimeFrameStrategy::provideOptions(
 		boost::program_options::options_description &optionDescription) {
-	optionDescription.add_options()(OPTION_TIME_FRAME.c_str(),
+	optionDescription.add_options()(
+			OPTION_TIME_FRAME.c_str(),
 			boost::program_options::value<unsigned int>(),
-			"allowed time frame to associate in microseconds.");
+			boost::str(
+					boost::format(
+							"allowed time frame to associate in microseconds in both directions of time, default %d")
+							% timeFrameMus).c_str())(
+			OPTION_BUFFER_TIME.c_str(),
+			boost::program_options::value<unsigned int>(),
+			boost::str(boost::format("buffer time in microseconds. "
+				"This is the time between now and primary-event.create which is "
+				"waited until the event is sent out with all synchronizable "
+				"other events. Default: %d") % bufferTimeMus).c_str());
 }
 
 void TimeFrameStrategy::handleOptions(
 		const boost::program_options::variables_map &options) {
 
-	if (!options.count(OPTION_TIME_FRAME.c_str())) {
-		throw invalid_argument("No time frame specified.");
+	if (options.count(OPTION_TIME_FRAME.c_str())) {
+		timeFrameMus = options[OPTION_TIME_FRAME.c_str()].as<unsigned int> ();
 	}
-	timeFrameMus = options[OPTION_TIME_FRAME.c_str()].as<unsigned int> ();
+	if (options.count(OPTION_BUFFER_TIME.c_str())) {
+		bufferTimeMus = options[OPTION_BUFFER_TIME.c_str()].as<unsigned int> ();
+	}
+
+	RSCINFO(
+			logger,
+			"Configured timeFrameMus = " << timeFrameMus
+					<< ", bufferTimeMus = " << bufferTimeMus);
 
 }
 
 void TimeFrameStrategy::handle(rsb::EventPtr event) {
+
+	if (event->getScope() == primaryScope || event->getScope().isSubScopeOf(
+			primaryScope)) {
+		// TODO to something with the primary event
+	} else {
+		boost::mutex::scoped_lock lock(subEventMutex);
+		subEventsByTime.insert(
+				pair<boost::uint64_t, rsb::EventPtr> (
+						event->getMetaData().getCreateTime(), event));
+		RSCDEBUG(logger, "Buffered subsidiary event " << event);
+	}
 
 }
 

@@ -261,6 +261,8 @@ private:
 int main(int argc, char **argv) {
 
 	rsc::logging::LoggerFactory::getInstance()->reconfigure(
+			rsc::logging::Logger::LEVEL_INFO);
+	rsc::logging::Logger::getLogger("rsbtimesync.TimeFrameStrategy")->setLevel(
 			rsc::logging::Logger::LEVEL_TRACE);
 
 	registerStrategies();

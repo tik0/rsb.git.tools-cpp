@@ -21,6 +21,12 @@
 
 #include "SyncStrategy.h"
 
+#include <boost/thread/mutex.hpp>
+
+#include <rsc/logging/Logger.h>
+
+#include <rsb/Event.h>
+
 namespace rsbtimesync {
 
 /**
@@ -54,8 +60,18 @@ public:
 private:
 
 	const std::string OPTION_TIME_FRAME;
+	const std::string OPTION_BUFFER_TIME;
+
+	rsc::logging::LoggerPtr logger;
+
+	rsb::Scope primaryScope;
+	std::set<rsb::Scope> subsidiaryScopes;
+
+	boost::mutex subEventMutex;
+	std::multimap<boost::uint64_t, rsb::EventPtr> subEventsByTime;
 
 	unsigned int timeFrameMus;
+	unsigned int bufferTimeMus;
 
 };
 
