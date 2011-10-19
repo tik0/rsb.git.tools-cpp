@@ -24,6 +24,7 @@
 #include <boost/thread/mutex.hpp>
 
 #include <rsc/logging/Logger.h>
+#include <rsc/threading/TaskExecutor.h>
 
 #include <rsb/Event.h>
 
@@ -35,11 +36,11 @@ namespace rsbtimesync {
  *
  * @author jwienke
  */
-class TimeWindowStrategy: public SyncStrategy {
+class TimeFrameStrategy: public SyncStrategy {
 public:
 
-	TimeWindowStrategy();
-	virtual ~TimeWindowStrategy();
+	TimeFrameStrategy();
+	virtual ~TimeFrameStrategy();
 
 	virtual std::string getName() const;
 	virtual std::string getKey() const;
@@ -59,10 +60,14 @@ public:
 
 private:
 
+	class SyncPushTask;
+
 	const std::string OPTION_TIME_FRAME;
 	const std::string OPTION_BUFFER_TIME;
 
 	rsc::logging::LoggerPtr logger;
+
+	SyncDataHandlerPtr handler;
 
 	rsb::Scope primaryScope;
 	std::set<rsb::Scope> subsidiaryScopes;
@@ -72,6 +77,8 @@ private:
 
 	unsigned int timeFrameMus;
 	unsigned int bufferTimeMus;
+
+	rsc::threading::TaskExecutorPtr executor;
 
 };
 

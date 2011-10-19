@@ -13,7 +13,7 @@ SET(RSBTS_SOURCES rsbtimesync/FirstMatchStrategy.cpp
                   rsbtimesync/SyncDataHandler.cpp
                   rsbtimesync/SyncMapConverter.cpp
                   rsbtimesync/SyncStrategy.cpp
-                  rsbtimesync/TimeWindowStrategy.cpp
+                  rsbtimesync/TimeFrameStrategy.cpp
                   ${PROTO_SOURCES})
 
 SET(RSBTS_HEADERS rsbtimesync/FirstMatchStrategy.h
@@ -22,7 +22,7 @@ SET(RSBTS_HEADERS rsbtimesync/FirstMatchStrategy.h
                   rsbtimesync/SyncDataHandler.h
                   rsbtimesync/SyncMapConverter.h
                   rsbtimesync/SyncStrategy.h
-                  rsbtimesync/TimeWindowStrategy.h
+                  rsbtimesync/TimeFrameStrategy.h
                   ${PROTO_HEADERS})
 
 ADD_LIBRARY(${LIBRARY_NAME} SHARED ${RSBTS_SOURCES} ${RSBTS_HEADERS})
