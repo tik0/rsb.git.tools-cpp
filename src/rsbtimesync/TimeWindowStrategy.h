@@ -31,15 +31,15 @@ namespace rsbtimesync {
 
 /**
  * A strategy that associates supplementary streams to the primary stream using
- * a specified time frame.
+ * a specified time window.
  *
  * @author jwienke
  */
-class TimeFrameStrategy: public SyncStrategy {
+class TimeWindowStrategy: public SyncStrategy {
 public:
 
-	TimeFrameStrategy();
-	virtual ~TimeFrameStrategy();
+	TimeWindowStrategy();
+	virtual ~TimeWindowStrategy();
 
 	virtual std::string getName() const;
 	virtual std::string getKey() const;

@@ -44,7 +44,7 @@
 #include "SchemaAndByteArrayConverter.h"
 #include "SyncMapConverter.h"
 #include "SyncStrategy.h"
-#include "TimeFrameStrategy.h"
+#include "TimeWindowStrategy.h"
 
 using namespace std;
 using namespace rsbtimesync;
@@ -72,7 +72,7 @@ void registerStrategies() {
 		strategiesByName[newMatch->getKey()] = newMatch;
 	}
 	{
-		SyncStrategyPtr newMatch(new TimeFrameStrategy);
+		SyncStrategyPtr newMatch(new TimeWindowStrategy);
 		strategiesByName[newMatch->getKey()] = newMatch;
 	}
 

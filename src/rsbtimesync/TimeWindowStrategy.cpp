@@ -17,7 +17,7 @@
  *
  * ============================================================ */
 
-#include "TimeFrameStrategy.h"
+#include "TimeWindowStrategy.h"
 
 #include <boost/format.hpp>
 
@@ -29,8 +29,8 @@ using namespace rsb;
 
 namespace rsbtimesync {
 
-TimeFrameStrategy::TimeFrameStrategy() :
-			OPTION_TIME_FRAME(getKey() + "-timeframe"),
+TimeWindowStrategy::TimeWindowStrategy() :
+			OPTION_TIME_FRAME(getKey() + "-window"),
 			OPTION_BUFFER_TIME(getKey() + "-buffer"),
 			logger(
 					rsc::logging::Logger::getLogger(
@@ -38,28 +38,28 @@ TimeFrameStrategy::TimeFrameStrategy() :
 			timeFrameMus(250000), bufferTimeMus(2 * timeFrameMus) {
 }
 
-TimeFrameStrategy::~TimeFrameStrategy() {
+TimeWindowStrategy::~TimeWindowStrategy() {
 }
 
-string TimeFrameStrategy::getName() const {
+string TimeWindowStrategy::getName() const {
 	return "TimeFrameStrategy";
 }
 
-string TimeFrameStrategy::getKey() const {
-	return "timeframe";
+string TimeWindowStrategy::getKey() const {
+	return "tw";
 }
 
-void TimeFrameStrategy::setSyncDataHandler(SyncDataHandlerPtr handler) {
+void TimeWindowStrategy::setSyncDataHandler(SyncDataHandlerPtr handler) {
 
 }
 
-void TimeFrameStrategy::initializeChannels(const Scope &primaryScope,
+void TimeWindowStrategy::initializeChannels(const Scope &primaryScope,
 		const set<Scope> &subsidiaryScopes) {
 	this->primaryScope = primaryScope;
 	this->subsidiaryScopes = subsidiaryScopes;
 }
 
-void TimeFrameStrategy::provideOptions(
+void TimeWindowStrategy::provideOptions(
 		boost::program_options::options_description &optionDescription) {
 	optionDescription.add_options()(
 			OPTION_TIME_FRAME.c_str(),
@@ -76,7 +76,7 @@ void TimeFrameStrategy::provideOptions(
 				"other events. Default: %d") % bufferTimeMus).c_str());
 }
 
-void TimeFrameStrategy::handleOptions(
+void TimeWindowStrategy::handleOptions(
 		const boost::program_options::variables_map &options) {
 
 	if (options.count(OPTION_TIME_FRAME.c_str())) {
@@ -93,7 +93,7 @@ void TimeFrameStrategy::handleOptions(
 
 }
 
-void TimeFrameStrategy::handle(rsb::EventPtr event) {
+void TimeWindowStrategy::handle(rsb::EventPtr event) {
 
 	if (event->getScope() == primaryScope || event->getScope().isSubScopeOf(
 			primaryScope)) {
