@@ -38,10 +38,11 @@ public:
 
 	SyncPushTask(EventPtr primaryEvent, boost::mutex &subEventMutex,
 			std::multimap<boost::uint64_t, rsb::EventPtr> &subEventsByTime
-			, SyncDataHandlerPtr handler, const unsigned int &bufferTimeMus) :
+			, SyncDataHandlerPtr handler, const unsigned int &bufferTimeMus
+			,const unsigned int &timeFrameMus) :
 			primaryEvent(primaryEvent), subEventMutex(subEventMutex), subEventsByTime(
 					subEventsByTime), handler(handler), bufferTimeMus(
-					bufferTimeMus) {
+					bufferTimeMus), timeFrameMus(timeFrameMus) {
 	}
 
 	void run() {
@@ -60,11 +61,11 @@ public:
 			for (std::multimap<boost::uint64_t, rsb::EventPtr>::iterator it =
 					subEventsByTime.lower_bound(
 							primaryEvent->getMetaData().getCreateTime()
-									- bufferTimeMus);
+									- timeFrameMus);
 					it
 							!= subEventsByTime.upper_bound(
 									primaryEvent->getMetaData().getCreateTime()
-											+ bufferTimeMus); ++it) {
+											+ timeFrameMus); ++it) {
 				(*message)[it->second->getScope()].push_back(it->second);
 				resultEvent->addCause(it->second->getEventId());
 			}
@@ -84,18 +85,28 @@ private:
 	std::multimap<boost::uint64_t, rsb::EventPtr> &subEventsByTime;
 	SyncDataHandlerPtr handler;
 	unsigned int bufferTimeMus;
+	unsigned int timeFrameMus;
 
 };
 
 TimeFrameStrategy::TimeFrameStrategy() :
-		OPTION_TIME_FRAME(getKey() + "-timeframe"), OPTION_BUFFER_TIME(
+		cleaningInterrupted(false), OPTION_TIME_FRAME(getKey() + "-timeframe"), OPTION_BUFFER_TIME(
 				getKey() + "-buffer"), logger(
 				rsc::logging::Logger::getLogger(
 						"rsbtimesync.TimeFrameStrategy")), timeFrameMus(250000), bufferTimeMus(
-				2 * timeFrameMus) {
+				2 * timeFrameMus), executor(
+				new rsc::threading::ThreadedTaskExecutor) {
+
+	cleanerThread.reset(
+			new boost::thread(
+					boost::bind(&TimeFrameStrategy::cleanerThreadMethod,
+							this)));
+
 }
 
 TimeFrameStrategy::~TimeFrameStrategy() {
+	cleaningInterrupted = true;
+	cleanerThread->join();
 }
 
 string TimeFrameStrategy::getName() const {
@@ -129,31 +140,23 @@ void TimeFrameStrategy::provideOptions(
 			boost::program_options::value<unsigned int>(),
 			boost::str(
 					boost::format(
-							"buffer time in microseconds. "
-									"This is the time between now and primary-event.create which is "
-									"waited until the event is sent out with all synchronizable "
-									"other events. Default: %d")
+							"buffer time in microseconds. This is the time between now and primary-event.create which is waited until the event is sent out with all synchronizable other events. Default: %d")
 							% bufferTimeMus).c_str());
 }
 
 void TimeFrameStrategy::handleOptions(
-		const boost::program_options::variables_map &options) {
-
+		const boost::program_options::variables_map & options) {
 	if (options.count(OPTION_TIME_FRAME.c_str())) {
 		timeFrameMus = options[OPTION_TIME_FRAME.c_str()].as<unsigned int>();
 	}
 	if (options.count(OPTION_BUFFER_TIME.c_str())) {
 		bufferTimeMus = options[OPTION_BUFFER_TIME.c_str()].as<unsigned int>();
-	}
-
-	RSCINFO(
+	}RSCINFO(
 			logger,
 			"Configured timeFrameMus = " << timeFrameMus << ", bufferTimeMus = " << bufferTimeMus);
-
 }
 
 void TimeFrameStrategy::handle(rsb::EventPtr event) {
-
 	if (event->getScope() == primaryScope
 			|| event->getScope().isSubScopeOf(primaryScope)) {
 		// for each primary event, start a task which waits until the event has
@@ -163,7 +166,7 @@ void TimeFrameStrategy::handle(rsb::EventPtr event) {
 
 		rsc::threading::TaskPtr task(
 				new SyncPushTask(event, subEventMutex, subEventsByTime, handler,
-						bufferTimeMus));
+						bufferTimeMus, timeFrameMus));
 		// TODO maybe we have to compare local time to created time or something like that to get a better delay?
 		executor->schedule(task, bufferTimeMus);
 
@@ -175,6 +178,26 @@ void TimeFrameStrategy::handle(rsb::EventPtr event) {
 				pair<boost::uint64_t, rsb::EventPtr>(
 						event->getMetaData().getCreateTime(), event));
 		RSCDEBUG(logger, "Buffered subsidiary event " << event);
+	}
+}
+
+void TimeFrameStrategy::cleanerThreadMethod() {
+
+	while (!cleaningInterrupted) {
+
+		{
+			boost::mutex::scoped_lock lock(subEventMutex);
+			subEventsByTime.erase(
+					subEventsByTime.begin(),
+					subEventsByTime.upper_bound(
+							rsc::misc::currentTimeMicros() - bufferTimeMus));
+
+			RSCDEBUG(logger, "\n\n\n\n\nBuffer size now: " << subEventsByTime.size());
+		}
+
+		boost::this_thread::sleep(
+				boost::posix_time::microseconds(2 * bufferTimeMus));
+
 	}
 
 }

@@ -21,7 +21,9 @@
 
 #include "SyncStrategy.h"
 
+#include <boost/thread.hpp>
 #include <boost/thread/mutex.hpp>
+#include <boost/scoped_ptr.hpp>
 
 #include <rsc/logging/Logger.h>
 #include <rsc/threading/TaskExecutor.h>
@@ -59,6 +61,10 @@ public:
 	virtual void handle(rsb::EventPtr event);
 
 private:
+
+	volatile bool cleaningInterrupted;
+	void cleanerThreadMethod();
+	boost::scoped_ptr<boost::thread> cleanerThread;
 
 	class SyncPushTask;
 
