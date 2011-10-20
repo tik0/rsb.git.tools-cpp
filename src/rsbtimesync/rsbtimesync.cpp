@@ -299,35 +299,8 @@ int main(int argc, char **argv) {
 	}
 
 	// main loop
+	// TODO add better sleep logic with interrupt handler
 	while (true) {
-
-		//		boost::shared_ptr<map<rsb::Scope, vector<rsb::EventPtr> > > message(
-		//				new map<rsb::Scope, vector<rsb::EventPtr> > );
-		//
-		//		rsb::EventPtr event(new rsb::Event);
-		//		event->setType("SyncMap");
-		//		event->setScope(outScope);
-		//
-		//		{
-		//			rsb::EventPtr primaryEvent = primaryQueue->pop();
-		//			RSCTRACE(logger, "Received primary event " << primaryEvent);
-		//			(*message)[primaryEvent->getScope()].push_back(primaryEvent);
-		//			event->addCause(primaryEvent->getEventId());
-		//		}
-		//
-		//		for (set<rsb::Scope>::const_iterator scopeIt =
-		//				supplementaryScopes.begin(); scopeIt
-		//				!= supplementaryScopes.end(); ++scopeIt) {
-		//
-		//			rsb::EventPtr supEvent = supplementaryQueues[*scopeIt]->pop();
-		//			RSCTRACE(logger, "Received supplementary event (" << *scopeIt << ") " << supEvent);
-		//			(*message)[supEvent->getScope()].push_back(supEvent);
-		//			event->addCause(supEvent->getEventId());
-		//
-		//		}
-		//
-		//		event->setData(message);
-		//		informer->publish(event);
 
 		boost::this_thread::sleep(boost::posix_time::seconds(10));
 
