@@ -39,6 +39,7 @@
 #include <rsc/runtime/ContainerIO.h>
 #include <rsc/threading/SynchronizedQueue.h>
 
+#include "ApproximateTimeStrategy.h"
 #include "FirstMatchStrategy.h"
 #include "InformerHandler.h"
 #include "SchemaAndByteArrayConverter.h"
@@ -73,6 +74,10 @@ void registerStrategies() {
 	}
 	{
 		SyncStrategyPtr newMatch(new TimeFrameStrategy);
+		strategiesByName[newMatch->getKey()] = newMatch;
+	}
+	{
+		SyncStrategyPtr newMatch(new ApproximateTimeStrategy);
 		strategiesByName[newMatch->getKey()] = newMatch;
 	}
 

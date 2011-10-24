@@ -96,17 +96,13 @@ TimeFrameStrategy::TimeFrameStrategy() :
 						"rsbtimesync.TimeFrameStrategy")), timeFrameMus(250000), bufferTimeMus(
 				2 * timeFrameMus), executor(
 				new rsc::threading::ThreadedTaskExecutor) {
-
-	cleanerThread.reset(
-			new boost::thread(
-					boost::bind(&TimeFrameStrategy::cleanerThreadMethod,
-							this)));
-
 }
 
 TimeFrameStrategy::~TimeFrameStrategy() {
 	cleaningInterrupted = true;
-	cleanerThread->join();
+	if (cleanerThread) {
+		cleanerThread->join();
+	}
 }
 
 string TimeFrameStrategy::getName() const {
@@ -151,9 +147,17 @@ void TimeFrameStrategy::handleOptions(
 	}
 	if (options.count(OPTION_BUFFER_TIME.c_str())) {
 		bufferTimeMus = options[OPTION_BUFFER_TIME.c_str()].as<unsigned int>();
-	}RSCINFO(
+	}
+
+	RSCINFO(
 			logger,
 			"Configured timeFrameMus = " << timeFrameMus << ", bufferTimeMus = " << bufferTimeMus);
+
+	cleanerThread.reset(
+			new boost::thread(
+					boost::bind(&TimeFrameStrategy::cleanerThreadMethod,
+							this)));
+
 }
 
 void TimeFrameStrategy::handle(rsb::EventPtr event) {
@@ -191,8 +195,6 @@ void TimeFrameStrategy::cleanerThreadMethod() {
 					subEventsByTime.begin(),
 					subEventsByTime.upper_bound(
 							rsc::misc::currentTimeMicros() - bufferTimeMus));
-
-			RSCDEBUG(logger, "\n\n\n\n\nBuffer size now: " << subEventsByTime.size());
 		}
 
 		boost::this_thread::sleep(
