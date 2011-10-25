@@ -31,14 +31,42 @@ using namespace testing;
 using namespace rsb;
 using namespace rsbtimesync;
 
-TEST(ApproximateTimeStrategyTest, testProcessing) {
+class StoringSyncDataHandler: public SyncDataHandler {
+public:
+
+	virtual rsb::EventPtr createEvent() {
+		EventPtr event(new Event);
+		event->setScope("/test/sync");
+		event->setType("SyncMap");
+		return event;
+	}
+
+	virtual void handle(EventPtr event) {
+		events.push_back(event);
+	}
+
+	vector<EventPtr> &getEvents() {
+		return events;
+	}
+
+private:
+
+	vector<EventPtr> events;
+
+};
+
+TEST(ApproximateTimeStrategyTest, testEqualFrequencyAndTiming) {
 
 	set<Scope> scopes;
 	scopes.insert("/aaa");
 	scopes.insert("/bbb");
 	scopes.insert("/ccc");
 
+	boost::shared_ptr<StoringSyncDataHandler> handler(
+			new StoringSyncDataHandler);
+
 	ApproximateTimeStrategy strategy;
+	strategy.setSyncDataHandler(handler);
 	strategy.initializeChannels(*(scopes.begin()), scopes);
 
 	// very simple case, completely synchronized events
@@ -57,6 +85,28 @@ TEST(ApproximateTimeStrategyTest, testProcessing) {
 		}
 
 		boost::this_thread::sleep(boost::posix_time::seconds(1));
+
+	}
+
+	EXPECT_EQ(size_t(4), handler->getEvents().size())
+		<< "For equal timing of all scopes the algorithm can always "
+				"produce number of published sequences - 1 sync sets. "
+				"For the last it waits until another element is "
+				"available on each scope, because otherwise the "
+				"condition that T_m is the Pivot cannot be checked.";
+
+	for (unsigned int sequenceNumber = 0;
+			sequenceNumber < handler->getEvents().size(); ++sequenceNumber) {
+
+		boost::shared_ptr<SyncMapConverter::DataMap> data =
+				boost::static_pointer_cast<SyncMapConverter::DataMap>(
+						handler->getEvents()[sequenceNumber]->getData());
+
+		EXPECT_EQ(size_t(3), data->size());
+		for (set<Scope>::const_iterator scopeIt = scopes.begin();
+				scopeIt != scopes.end(); ++scopeIt) {
+			EXPECT_EQ(size_t(1), data->count(*scopeIt));
+		}
 
 	}
 
