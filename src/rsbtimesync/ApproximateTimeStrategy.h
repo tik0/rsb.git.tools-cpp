@@ -22,6 +22,8 @@
 #include <map>
 #include <deque>
 
+#include <boost/thread/mutex.hpp>
+
 #include "SyncStrategy.h"
 
 namespace rsbtimesync {
@@ -50,16 +52,67 @@ public:
 	virtual void handleOptions(
 			const boost::program_options::variables_map &options);
 
-	virtual void handle(rsb::EventPtr);
+	virtual void handle(rsb::EventPtr event);
 
 private:
 
+	class Candidate;
+	typedef boost::shared_ptr<Candidate> CandidatePtr;
+
+	bool isNoEmptyQueue() const;
+
+	/**
+	 * Makes a new candidate from all heads of #newEventsByScope.
+	 *
+	 * @return candidate from head of queues
+	 */
+	CandidatePtr makeCandidate() const;
+
+	void publishCandidate();
+
+	/**
+	 *
+	 */
+	void recover();
+
+	void deleteOlderThanCandidate();
+
+	/**
+	 * Shifts the current head of a queue in #newEventsByScope to
+	 * #processedEventsByScope.
+	 *
+	 * @param scope scope of the queue to shift
+	 */
+	void shift(const rsb::Scope &scope);
+
+	/**
+	 * Clears #processedEventsByScope. This makes a track back to a former
+	 * candidate impossible and hence should be called whenever we are sure that
+	 * the currently analyzed candidate is better than the old one which could
+	 * be tracked back with the processed queues so far.
+	 */
+	void clearProcessed();
+
+	bool isAllQueuesFilled() const;
+
 	const std::string OPTION_QUEUE_SIZE;
+
+	rsc::logging::LoggerPtr logger;
 
 	SyncDataHandlerPtr handler;
 
 	unsigned int queueSize;
-	std::map<rsb::Scope, std::deque<rsb::EventPtr> > eventQueuesByScope;
+	typedef std::map<rsb::Scope, std::deque<rsb::EventPtr> > EventQueueMap;
+	EventQueueMap newEventsByScope;
+	/**
+	 * Contains all events that have been analyzed so far and which are required
+	 * to track back to the best known candidate.
+	 */
+	EventQueueMap trackBackQueuesByScope;
+	boost::mutex mutex;
+
+	rsb::EventPtr pivot;
+	CandidatePtr currentCandidate;
 
 };
 

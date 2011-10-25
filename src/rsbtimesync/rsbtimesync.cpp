@@ -81,6 +81,8 @@ void registerStrategies() {
 		strategiesByName[newMatch->getKey()] = newMatch;
 	}
 
+	RSCINFO(logger, "Registered strategies: " << strategiesByName);
+
 }
 
 bool parseOptions(int argc, char **argv) {
@@ -88,7 +90,8 @@ bool parseOptions(int argc, char **argv) {
 	stringstream strategiesDescription;
 	strategiesDescription << "Specifies the strategy to be used for syncing {";
 	for (map<string, SyncStrategyPtr>::iterator strategyIt =
-			strategiesByName.begin(); strategyIt != strategiesByName.end(); ++strategyIt) {
+			strategiesByName.begin(); strategyIt != strategiesByName.end();
+			++strategyIt) {
 		strategiesDescription << " " << strategyIt->first;
 	}
 	strategiesDescription << " }";
@@ -105,7 +108,8 @@ bool parseOptions(int argc, char **argv) {
 
 	// also for the strategies
 	for (map<string, SyncStrategyPtr>::iterator strategyIt =
-			strategiesByName.begin(); strategyIt != strategiesByName.end(); ++strategyIt) {
+			strategiesByName.begin(); strategyIt != strategiesByName.end();
+			++strategyIt) {
 		strategyIt->second->provideOptions(desc);
 	}
 
@@ -115,7 +119,7 @@ bool parseOptions(int argc, char **argv) {
 
 	po::variables_map vm;
 	po::store(
-			po::command_line_parser(argc, argv). options(desc).positional(p).run(),
+			po::command_line_parser(argc, argv).options(desc).positional(p).run(),
 			vm);
 	po::notify(vm);
 
@@ -128,7 +132,7 @@ bool parseOptions(int argc, char **argv) {
 
 	// out scope
 	if (vm.count(OPTION_OUT_SCOPE)) {
-		outScope = rsb::Scope(vm[OPTION_OUT_SCOPE].as<string> ());
+		outScope = rsb::Scope(vm[OPTION_OUT_SCOPE].as<string>());
 	} else {
 		cerr << "No out scope defined." << endl;
 		return false;
@@ -136,7 +140,7 @@ bool parseOptions(int argc, char **argv) {
 
 	// primary scope
 	if (vm.count(OPTION_PRIMARY_SCOPE)) {
-		primaryScope = rsb::Scope(vm[OPTION_PRIMARY_SCOPE].as<string> ());
+		primaryScope = rsb::Scope(vm[OPTION_PRIMARY_SCOPE].as<string>());
 	} else {
 		cerr << "No primary scope defined." << endl;
 		return false;
@@ -144,10 +148,10 @@ bool parseOptions(int argc, char **argv) {
 
 	// supplementary scopes
 	if (vm.count(OPTION_SUPPLEMENTARY_SCOPE)) {
-		vector<string> scopeStrings = vm[OPTION_SUPPLEMENTARY_SCOPE].as<vector<
-				string> > ();
-		for (vector<string>::const_iterator it = scopeStrings.begin(); it
-				!= scopeStrings.end(); ++it) {
+		vector<string> scopeStrings = vm[OPTION_SUPPLEMENTARY_SCOPE].as<
+				vector<string> >();
+		for (vector<string>::const_iterator it = scopeStrings.begin();
+				it != scopeStrings.end(); ++it) {
 			supplementaryScopes.insert(rsb::Scope(*it));
 		}
 	} else {
@@ -160,7 +164,7 @@ bool parseOptions(int argc, char **argv) {
 		cerr << "No sync strategy specified." << endl;
 		return false;
 	}
-	string strategyKey = vm[OPTION_STRATEGY].as<string> ();
+	string strategyKey = vm[OPTION_STRATEGY].as<string>();
 	if (!strategiesByName.count(strategyKey)) {
 		cerr << "Unknown sync strategy '" << strategyKey << "' requested."
 				<< endl;
@@ -175,14 +179,11 @@ bool parseOptions(int argc, char **argv) {
 		return false;
 	}
 
-	RSCINFO(
-			logger,
-			"Configured:\n"
-				"  " << OPTION_OUT_SCOPE << " = " << outScope << "\n"
-				"  " << OPTION_PRIMARY_SCOPE << " = " << primaryScope << "\n"
-				"  " << OPTION_SUPPLEMENTARY_SCOPE << " = "
-					<< supplementaryScopes << "\n"
-				"  " << OPTION_STRATEGY << " = " << strategy->getKey());
+	RSCINFO( logger, "Configured:\n"
+	"  " << OPTION_OUT_SCOPE << " = " << outScope << "\n"
+	"  " << OPTION_PRIMARY_SCOPE << " = " << primaryScope << "\n"
+	"  " << OPTION_SUPPLEMENTARY_SCOPE << " = " << supplementaryScopes << "\n"
+	"  " << OPTION_STRATEGY << " = " << strategy->getKey());
 
 	return true;
 
@@ -191,8 +192,9 @@ bool parseOptions(int argc, char **argv) {
 void configureConversion() {
 
 	// set up converters
-	list<pair<rsb::converter::ConverterPredicatePtr, rsb::converter::Converter<
-			string>::Ptr> > converters;
+	list<
+			pair<rsb::converter::ConverterPredicatePtr,
+					rsb::converter::Converter<string>::Ptr> > converters;
 	converters.push_back(
 			make_pair(
 					rsb::converter::ConverterPredicatePtr(
@@ -216,19 +218,24 @@ void configureConversion() {
 
 rsb::ParticipantConfig createInformerConfig() {
 
-	list<pair<rsb::converter::ConverterPredicatePtr, rsb::converter::Converter<
-			string>::Ptr> > converters;
+	list<
+			pair<rsb::converter::ConverterPredicatePtr,
+					rsb::converter::Converter<string>::Ptr> > converters;
 	converters.push_back(
 			make_pair(
 					rsb::converter::ConverterPredicatePtr(
 							new rsb::converter::AlwaysApplicable()),
-					rsb::converter::Converter<string>::Ptr(new SyncMapConverter)));
+					rsb::converter::Converter<string>::Ptr(
+							new SyncMapConverter)));
 	rsb::converter::ConverterSelectionStrategy<string>::Ptr selectionStrategy(
 			new rsb::converter::PredicateConverterList<string>(
 					converters.begin(), converters.end()));
 	// adapt default participant configuration
 	rsb::ParticipantConfig config =
 			rsb::Factory::getInstance().getDefaultParticipantConfig();
+	config.setQualityOfServiceSpec(
+			rsb::QualityOfServiceSpec(rsb::QualityOfServiceSpec::ORDERED,
+					rsb::QualityOfServiceSpec::RELIABLE));
 	rsb::ParticipantConfig::Transport transport = config.getTransport("spread");
 	rsc::runtime::Properties options = transport.getOptions();
 	options["converters"] = selectionStrategy;
@@ -242,7 +249,7 @@ class InformingSyncDataHandler: public SyncDataHandler {
 public:
 
 	InformingSyncDataHandler(rsb::InformerBasePtr informer) :
-		informer(informer) {
+			informer(informer) {
 	}
 
 	virtual ~InformingSyncDataHandler() {
@@ -281,7 +288,7 @@ int main(int argc, char **argv) {
 	configureConversion();
 
 	rsb::Informer<void>::Ptr informer =
-			rsb::Factory::getInstance().createInformer<void> (outScope,
+			rsb::Factory::getInstance().createInformer<void>(outScope,
 					createInformerConfig(), "SyncMap");
 	SyncDataHandlerPtr handler(new InformingSyncDataHandler(informer));
 
@@ -294,11 +301,11 @@ int main(int argc, char **argv) {
 	primaryListener->addHandler(strategy);
 
 	map<rsb::Scope, rsb::ListenerPtr> supplementaryListeners;
-	for (set<rsb::Scope>::const_iterator scopeIt = supplementaryScopes.begin(); scopeIt
-			!= supplementaryScopes.end(); ++scopeIt) {
+	for (set<rsb::Scope>::const_iterator scopeIt = supplementaryScopes.begin();
+			scopeIt != supplementaryScopes.end(); ++scopeIt) {
 
-		supplementaryListeners[*scopeIt]
-				= rsb::Factory::getInstance().createListener(*scopeIt);
+		supplementaryListeners[*scopeIt] =
+				rsb::Factory::getInstance().createListener(*scopeIt);
 		supplementaryListeners[*scopeIt]->addHandler(strategy);
 
 	}

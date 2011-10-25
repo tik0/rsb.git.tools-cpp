@@ -5,9 +5,16 @@ PROJECT("RSBTimeSync")
 # --- project settings ---
 
 OPTION(OPTION_BUILD_EXAMPLES "Whether to build the examples or not" TRUE)
+OPTION(OPTION_BUILD_TESTS "Whether to build the tests or not" TRUE)
 
 SET(LIBRARY_NAME "rsbts")
 SET(BINARY_NAME "rsbtimesync")
+
+SET(GTEST_DIR "${CMAKE_SOURCE_DIR}/3rdparty/gmock/gtest")
+SET(GTEST_INCLUDE_DIR "${GTEST_DIR}/include")
+SET(GMOCK_DIR "${CMAKE_SOURCE_DIR}/3rdparty/gmock")
+SET(GMOCK_INCLUDE_DIR "${GMOCK_DIR}/include")
+SET(GMOCK_LIBRARY_NAME "gmock")
 
 # --- dependencies ---
 
@@ -32,8 +39,11 @@ ADD_DEFINITIONS(${RST_CFLAGS})
 
 SET(CMAKE_MODULE_PATH ${CMAKE_MODUKE_PATH} ${RSC_CMAKE_MODULE_PATH})
 
+ADD_SUBDIRECTORY(3rdparty)
 ADD_SUBDIRECTORY(src)
-ADD_SUBDIRECTORY(test)
+IF(OPTION_BUILD_TESTS)
+    ADD_SUBDIRECTORY(test)
+ENDIF()
 IF(OPTION_BUILD_EXAMPLES)
     ADD_SUBDIRECTORY(examples)
 ENDIF()
