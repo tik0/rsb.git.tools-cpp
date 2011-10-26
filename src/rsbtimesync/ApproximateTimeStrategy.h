@@ -54,6 +54,8 @@ public:
 
     virtual void handle(rsb::EventPtr event);
 
+    void setQueueSize(const unsigned int &size);
+
 private:
 
     class Candidate;
@@ -74,11 +76,18 @@ private:
      * Recovers the state which was known as the best candidate by replaying all
      * events from #trackBackQueuesByScope to #newEventsByScope.
      */
-    void recover();
+    void trackBack();
 
     void deleteOlderThanCandidate();
 
     void process();
+
+    /**
+     * Erases the current head of a queue in #newEventsByScope.
+     *
+     * @param scope scope of the queue to erase
+     */
+    void erase(const rsb::Scope &scope);
 
     /**
      * Shifts the current head of a queue in #newEventsByScope to
@@ -94,7 +103,14 @@ private:
      * the currently analyzed candidate is better than the old one which could
      * be tracked back with the processed queues so far.
      */
-    void clearProcessed();
+    void clearTrackBackQueues();
+
+    /**
+     * Clears the dropped state for all channels except the one given.
+     *
+     * @param excludeScope channel to exclude from resetting the drop state
+     */
+    void clearDroppedState(const rsb::Scope &excludeScope);
 
     bool isAllQueuesFilled() const;
 
@@ -106,7 +122,9 @@ private:
 
     unsigned int queueSize;
     typedef std::map<rsb::Scope, std::deque<rsb::EventPtr> > EventQueueMap;
+    typedef std::map<rsb::Scope, bool> QueueDropMap;
     EventQueueMap newEventsByScope;
+    QueueDropMap queueDropMap;
     /**
      * Contains all events that have been analyzed so far and which are required
      * to track back to the best known candidate.

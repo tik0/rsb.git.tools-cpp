@@ -123,9 +123,11 @@ void ApproximateTimeStrategy::setSyncDataHandler(SyncDataHandlerPtr handler) {
 void ApproximateTimeStrategy::initializeChannels(const Scope &primaryScope,
         const set<Scope> &subsidiaryScopes) {
     newEventsByScope[primaryScope];
+    queueDropMap[primaryScope] = false;
     for (set<Scope>::const_iterator scopeIt = subsidiaryScopes.begin();
             scopeIt != subsidiaryScopes.end(); ++scopeIt) {
         newEventsByScope[*scopeIt];
+        queueDropMap[*scopeIt] = false;
     }
 }
 
@@ -176,17 +178,27 @@ ApproximateTimeStrategy::CandidatePtr ApproximateTimeStrategy::makeCandidate() c
 
 }
 
-void ApproximateTimeStrategy::shift(const Scope &scope) {
+void ApproximateTimeStrategy::erase(const Scope &scope) {
 
-    RSCTRACE(logger, "Shifting on scope " << scope);
-    trackBackQueuesByScope[scope].push_back(newEventsByScope[scope].front());
+    RSCTRACE(logger, "Erasing on scope " << scope);
     newEventsByScope[scope].pop_front();
 
 }
 
-void ApproximateTimeStrategy::clearProcessed() {
-    RSCDEBUG(logger, "Clearing processed events");
-    trackBackQueuesByScope.clear();
+void ApproximateTimeStrategy::shift(const Scope &scope) {
+
+    RSCTRACE(logger, "Shifting on scope " << scope);
+    trackBackQueuesByScope[scope].push_back(newEventsByScope[scope].front());
+    erase(scope);
+
+}
+
+void ApproximateTimeStrategy::clearTrackBackQueues() {
+    RSCDEBUG(logger, "Clearing track back events");
+    for (EventQueueMap::iterator queueIt = trackBackQueuesByScope.begin();
+            queueIt != trackBackQueuesByScope.end(); ++queueIt) {
+        queueIt->second.clear();
+    }
 }
 
 bool ApproximateTimeStrategy::isAllQueuesFilled() const {
@@ -202,22 +214,22 @@ bool ApproximateTimeStrategy::isAllQueuesFilled() const {
 
 }
 
-void ApproximateTimeStrategy::recover() {
+void ApproximateTimeStrategy::trackBack() {
 
     RSCDEBUG(logger, "recovering all channels");
 
     for (EventQueueMap::iterator queueIt = newEventsByScope.begin();
             queueIt != newEventsByScope.end(); ++queueIt) {
 
-        while (!trackBackQueuesByScope[queueIt->first].empty()) {
-            queueIt->second.push_front(
-                    trackBackQueuesByScope[queueIt->first].back());
-            trackBackQueuesByScope[queueIt->first].pop_back();
+        Scope scope = queueIt->first;
+
+        deque<EventPtr> &trackBackQueue = trackBackQueuesByScope[scope];
+        while (!trackBackQueue.empty()) {
+            queueIt->second.push_front(trackBackQueue.back());
+            trackBackQueue.pop_back();
         }
 
     }
-
-    trackBackQueuesByScope.clear();
 
 }
 
@@ -244,7 +256,7 @@ void ApproximateTimeStrategy::publishCandidate() {
     resultEvent->setData(message);
     handler->handle(resultEvent);
 
-    recover();
+    trackBack();
     deleteOlderThanCandidate();
     currentCandidate.reset();
     pivot.reset();
@@ -254,7 +266,6 @@ void ApproximateTimeStrategy::publishCandidate() {
 void ApproximateTimeStrategy::deleteOlderThanCandidate() {
 
     assert(currentCandidate);
-    assert(trackBackQueuesByScope.empty());
 
     // with the processing logic so far we can assume that after a recover call
     // only the head of each queue needs to be remove in order to remove the
@@ -271,6 +282,15 @@ void ApproximateTimeStrategy::deleteOlderThanCandidate() {
 
 }
 
+void ApproximateTimeStrategy::clearDroppedState(const Scope &excludeScope) {
+    for (QueueDropMap::iterator scopeIt = queueDropMap.begin();
+            scopeIt != queueDropMap.end(); ++scopeIt) {
+        if (scopeIt->first != excludeScope) {
+            scopeIt->second = false;
+        }
+    }
+}
+
 void ApproximateTimeStrategy::process() {
 
     // As long as all queues contain at least one element we can process
@@ -280,16 +300,29 @@ void ApproximateTimeStrategy::process() {
 
         // make a new candidate based on the current heads of the queues
         CandidatePtr newCandidate = makeCandidate();
+        EventPtr newCandidateYoungest = newCandidate->getYoungestEvent();
         RSCDEBUG(logger, "proposed candidate: " << newCandidate);
+
+        // TODO why exactly is this the right thing to do?
+        clearDroppedState(newCandidateYoungest->getScope());
 
         if (!currentCandidate) {
             RSCTRACE(logger, "There is no current candidate");
             // if we currently do not have a candidate, prepare one simply from the
             // heads of each queue
 
-            pivot = newCandidate->getYoungestEvent();
+            if (queueDropMap[newCandidateYoungest->getScope()]) {
+                RSCDEBUG(
+                        logger,
+                        "The proposed pivot is from a queue with dropped messages. Ignoring this candidate.");
+                // TODO include a warning in the case
+                erase(newCandidateYoungest->getScope());
+                continue;
+            }
+
+            pivot = newCandidateYoungest;
             currentCandidate = newCandidate;
-            clearProcessed();
+            clearTrackBackQueues();
 
         } else {
             // if we already have a candidate, we need to check whether this one is
@@ -298,7 +331,7 @@ void ApproximateTimeStrategy::process() {
             if (newCandidate->size() < currentCandidate->size()) {
                 // this candidate is smaller, so it's better
                 currentCandidate = newCandidate;
-                clearProcessed();
+                clearTrackBackQueues();
             }
 
         }
@@ -308,11 +341,11 @@ void ApproximateTimeStrategy::process() {
                 "pivot = " << pivot << "\n" << "currentCandidate = " << currentCandidate);
 
         // shift the oldest element
-        EventPtr currentOldestEvent = newCandidate->getOldestEvent();
-        shift(currentOldestEvent->getScope());
+        EventPtr newCandidateOldest = newCandidate->getOldestEvent();
+        shift(newCandidateOldest->getScope());
 
         // check whether we reached the pivot
-        if (currentOldestEvent == pivot) {
+        if (newCandidateOldest == pivot) {
             publishCandidate();
         }
 
@@ -322,51 +355,65 @@ void ApproximateTimeStrategy::process() {
 
 }
 
-// TODO check drops for pivot elements
 void ApproximateTimeStrategy::handle(EventPtr event) {
 
     // TODO optimize access to queues and scope of event
 
     RSCDEBUG(logger, "Handling event " << event);
 
+    Scope scope = event->getScope();
+
     boost::mutex::scoped_lock(mutex);
 
-    if (!newEventsByScope.count(event->getScope())) {
+    if (!newEventsByScope.count(scope)) {
         throw invalid_argument(
                 boost::str(
                         boost::format(
                                 "Received an event on scope %s, which is not one of the configured scopes.")
-                                % event->getScope()));
+                                % scope));
     }
 
-    newEventsByScope[event->getScope()].push_back(event);
+    deque<EventPtr> &newQueue = newEventsByScope[scope];
+    deque<EventPtr> &trackBackQueue = trackBackQueuesByScope[scope];
+    RSCTRACE(
+            logger,
+            "newQueue size = " << newQueue.size() << ", trackBackQueue size = " << trackBackQueue.size() << ", desired queueSize = " << queueSize);
+
+    newQueue.push_back(event);
     // we may not yet ensure the size of the queue because then the event which
     // is closest to the last emitted set might be thrown away. This would cause
     // sets which are not contiguous.
 
     process();
 
+    RSCTRACE(
+            logger,
+            "newQueue size = " << newQueue.size() << ", trackBackQueue size = " << trackBackQueue.size() << ", desired queueSize = " << queueSize);
+
     // finally we can ensure the size of the queues
     // TODO does this still ensure that sets are contiguous?
-    if (newEventsByScope[event->getScope()].size()
-            + trackBackQueuesByScope[event->getScope()].size() > queueSize) {
+    // Probably yes because dropped channels are not used as pivot
+    if (newQueue.size() + trackBackQueue.size() > queueSize) {
 
         RSCDEBUG(
                 logger,
-                "Queues for scope " << event->getScope() << " are filled up. Dropping events.");
+                "Queues for scope " << scope << " are filled up. Dropping events.");
 
-        // for being able to drop a message, we first recover state to the
-        // "new" queues
-        recover();
+        // for being able to drop a message, we first track back to initial state
+        trackBack();
 
         // afterwards we can simply drop the last element from the offending new
         // queue
-        RSCDEBUG(
-                logger,
-                "Dropping event " << newEventsByScope[event->getScope()].front());
-        newEventsByScope[event->getScope()].pop_front();
-        assert(
-                newEventsByScope[event->getScope()].size() + trackBackQueuesByScope[event->getScope()].size() == queueSize);
+        RSCDEBUG(logger, "Dropping event " << newQueue.front());
+        newQueue.pop_front();
+        assert(newQueue.size() + trackBackQueue.size() == queueSize);
+
+        // mark the queue as having dropped elements
+        queueDropMap[event->getScope()] = true;
+
+        // also we have to invalidate the current candidate and pivot
+        pivot.reset();
+        currentCandidate.reset();
 
         // finally, it still might be possible to find a good candidate now, so
         // try processing again
@@ -374,6 +421,10 @@ void ApproximateTimeStrategy::handle(EventPtr event) {
 
     }
 
+}
+
+void ApproximateTimeStrategy::setQueueSize(const unsigned int &size) {
+    this->queueSize = size;
 }
 
 }
