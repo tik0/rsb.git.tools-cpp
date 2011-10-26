@@ -22,14 +22,32 @@
 
 #include <rsc/logging/LoggerFactory.h>
 
+#include "../testhelpers.h"
+
 using namespace testing;
+
+class SpreadEnvironment: public ::testing::Environment {
+public:
+
+    virtual void SetUp() {
+        spreadProcess = startSpread();
+    }
+
+    virtual void TearDown() {
+        spreadProcess.reset();
+    }
+
+private:
+    rsc::subprocess::SubprocessPtr spreadProcess;
+
+};
 
 int main(int argc, char* argv[]) {
 
     srand(time(NULL));
-    rsc::logging::LoggerFactory::getInstance()->reconfigure(
-            rsc::logging::Logger::LEVEL_TRACE);
+    setupLogging();
 
+    ::testing::AddGlobalTestEnvironment(new SpreadEnvironment);
     InitGoogleMock(&argc, argv);
     return RUN_ALL_TESTS();
 
