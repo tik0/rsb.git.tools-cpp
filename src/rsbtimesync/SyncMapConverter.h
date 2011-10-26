@@ -30,23 +30,23 @@ namespace rsbtimesync {
 class SyncMapConverter: public rsb::converter::Converter<std::string> {
 public:
 
-	typedef std::map<rsb::Scope, std::vector<rsb::EventPtr> > DataMap;
+    typedef std::map<rsb::Scope, std::vector<rsb::EventPtr> > DataMap;
 
-	SyncMapConverter(
-			rsb::converter::Repository<std::string>::Ptr converterRepository =
-					rsb::converter::stringConverterRepository());
-	virtual ~SyncMapConverter();
+    SyncMapConverter(
+            rsb::converter::Repository<std::string>::Ptr converterRepository =
+                    rsb::converter::stringConverterRepository());
+    virtual ~SyncMapConverter();
 
-	std::string getClassName() const;
+    std::string getClassName() const;
 
-	std::string serialize(const rsb::converter::AnnotatedData &data,
-			std::string &wire);
+    std::string serialize(const rsb::converter::AnnotatedData &data,
+            std::string &wire);
 
-	rsb::converter::AnnotatedData deserialize(const std::string &wireSchema,
-			const std::string &wire);
+    rsb::converter::AnnotatedData deserialize(const std::string &wireSchema,
+            const std::string &wire);
 
 private:
-	rsb::converter::Repository<std::string>::Ptr converterRepository;
+    rsb::converter::Repository<std::string>::Ptr converterRepository;
 
 };
 

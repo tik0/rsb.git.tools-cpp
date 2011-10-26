@@ -41,50 +41,50 @@ namespace rsbtimesync {
 class TimeFrameStrategy: public SyncStrategy {
 public:
 
-	TimeFrameStrategy();
-	virtual ~TimeFrameStrategy();
+    TimeFrameStrategy();
+    virtual ~TimeFrameStrategy();
 
-	virtual std::string getName() const;
-	virtual std::string getKey() const;
+    virtual std::string getName() const;
+    virtual std::string getKey() const;
 
-	virtual void setSyncDataHandler(SyncDataHandlerPtr handler);
+    virtual void setSyncDataHandler(SyncDataHandlerPtr handler);
 
-	virtual void initializeChannels(const rsb::Scope &primaryScope,
-			const std::set<rsb::Scope> &subsidiaryScopes);
+    virtual void initializeChannels(const rsb::Scope &primaryScope,
+            const std::set<rsb::Scope> &subsidiaryScopes);
 
-	virtual void provideOptions(
-			boost::program_options::options_description &optionDescription);
+    virtual void provideOptions(
+            boost::program_options::options_description &optionDescription);
 
-	virtual void handleOptions(
-			const boost::program_options::variables_map &options);
+    virtual void handleOptions(
+            const boost::program_options::variables_map &options);
 
-	virtual void handle(rsb::EventPtr event);
+    virtual void handle(rsb::EventPtr event);
 
 private:
 
-	volatile bool cleaningInterrupted;
-	void cleanerThreadMethod();
-	boost::scoped_ptr<boost::thread> cleanerThread;
+    volatile bool cleaningInterrupted;
+    void cleanerThreadMethod();
+    boost::scoped_ptr<boost::thread> cleanerThread;
 
-	class SyncPushTask;
+    class SyncPushTask;
 
-	const std::string OPTION_TIME_FRAME;
-	const std::string OPTION_BUFFER_TIME;
+    const std::string OPTION_TIME_FRAME;
+    const std::string OPTION_BUFFER_TIME;
 
-	rsc::logging::LoggerPtr logger;
+    rsc::logging::LoggerPtr logger;
 
-	SyncDataHandlerPtr handler;
+    SyncDataHandlerPtr handler;
 
-	rsb::Scope primaryScope;
-	std::set<rsb::Scope> subsidiaryScopes;
+    rsb::Scope primaryScope;
+    std::set<rsb::Scope> subsidiaryScopes;
 
-	boost::mutex subEventMutex;
-	std::multimap<boost::uint64_t, rsb::EventPtr> subEventsByTime;
+    boost::mutex subEventMutex;
+    std::multimap<boost::uint64_t, rsb::EventPtr> subEventsByTime;
 
-	unsigned int timeFrameMus;
-	unsigned int bufferTimeMus;
+    unsigned int timeFrameMus;
+    unsigned int bufferTimeMus;
 
-	rsc::threading::TaskExecutorPtr executor;
+    rsc::threading::TaskExecutorPtr executor;
 
 };
 

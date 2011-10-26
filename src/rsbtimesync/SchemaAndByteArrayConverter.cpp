@@ -32,14 +32,14 @@ SchemaAndByteArrayConverter::~SchemaAndByteArrayConverter() {
 }
 
 rsb::converter::AnnotatedData SchemaAndByteArrayConverter::deserialize(
-		const string &wireType, const string &wire) {
-	rsb::converter::AnnotatedData originalData =
-			rsb::converter::ByteArrayConverter::deserialize(wireType, wire);
-	return make_pair(
-			"schemaandbytearray",
-			boost::shared_ptr<pair<string, boost::shared_ptr<void> > >(
-					new pair<string, boost::shared_ptr<void> >(wireType,
-							originalData.second)));
+        const string &wireType, const string &wire) {
+    rsb::converter::AnnotatedData originalData =
+            rsb::converter::ByteArrayConverter::deserialize(wireType, wire);
+    return make_pair(
+            "schemaandbytearray",
+            boost::shared_ptr<pair<string, boost::shared_ptr<void> > >(
+                    new pair<string, boost::shared_ptr<void> >(wireType,
+                            originalData.second)));
 }
 
 }

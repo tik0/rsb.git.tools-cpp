@@ -33,9 +33,9 @@ using namespace std;
 namespace rsbtimesync {
 
 SyncMapConverter::SyncMapConverter(
-		rsb::converter::Repository<std::string>::Ptr converterRepository) :
-		rsb::converter::Converter<string>("SyncMap", "SyncMap", true), converterRepository(
-				converterRepository) {
+        rsb::converter::Repository<std::string>::Ptr converterRepository) :
+        rsb::converter::Converter<string>("SyncMap", "SyncMap", true), converterRepository(
+                converterRepository) {
 
 }
 
@@ -43,98 +43,98 @@ SyncMapConverter::~SyncMapConverter() {
 }
 
 string SyncMapConverter::getClassName() const {
-	return "SyncMapConverter";
+    return "SyncMapConverter";
 }
 
 string SyncMapConverter::serialize(const rsb::converter::AnnotatedData &data,
-		string &wire) {
+        string &wire) {
 
-	if (data.first != getDataType()) {
-		throw rsb::converter::SerializationException(
-				"Called with unsupported data type " + data.first);
-	}
+    if (data.first != getDataType()) {
+        throw rsb::converter::SerializationException(
+                "Called with unsupported data type " + data.first);
+    }
 
-	boost::shared_ptr<DataMap> dataMap = boost::static_pointer_cast<DataMap>(
-			data.second);
+    boost::shared_ptr<DataMap> dataMap = boost::static_pointer_cast<DataMap>(
+            data.second);
 
-	SyncMap syncMap;
+    SyncMap syncMap;
 
-	for (DataMap::const_iterator mapIt = dataMap->begin();
-			mapIt != dataMap->end(); ++mapIt) {
+    for (DataMap::const_iterator mapIt = dataMap->begin();
+            mapIt != dataMap->end(); ++mapIt) {
 
-		SyncMap::ScopeSet *scopeSet = syncMap.add_sets();
-		scopeSet->set_scope(mapIt->first.toString());
+        SyncMap::ScopeSet *scopeSet = syncMap.add_sets();
+        scopeSet->set_scope(mapIt->first.toString());
 
-		cout << "Processing scope " << mapIt->first << endl;
+        cout << "Processing scope " << mapIt->first << endl;
 
-		for (vector<rsb::EventPtr>::const_iterator eventIt =
-				mapIt->second.begin(); eventIt != mapIt->second.end();
-				++eventIt) {
+        for (vector<rsb::EventPtr>::const_iterator eventIt =
+                mapIt->second.begin(); eventIt != mapIt->second.end();
+                ++eventIt) {
 
-			rsb::EventPtr event = *eventIt;
-			cout << "  processing event " << event << endl;
-			boost::shared_ptr<pair<string, boost::shared_ptr<string> > > annotatedData =
-					boost::static_pointer_cast<
-							pair<string, boost::shared_ptr<string> > >(
-							event->getData());
+            rsb::EventPtr event = *eventIt;
+            cout << "  processing event " << event << endl;
+            boost::shared_ptr<pair<string, boost::shared_ptr<string> > > annotatedData =
+                    boost::static_pointer_cast<
+                            pair<string, boost::shared_ptr<string> > >(
+                            event->getData());
 
-			SyncMap::ScopeSet::BaseData *data = scopeSet->add_data();
-			data->set_wire_schema(annotatedData->first);
-			data->set_data(*(annotatedData->second));
+            SyncMap::ScopeSet::BaseData *data = scopeSet->add_data();
+            data->set_wire_schema(annotatedData->first);
+            data->set_data(*(annotatedData->second));
 
-		}
+        }
 
-	}
+    }
 
-	cout << "build SyncMap: " << syncMap.DebugString() << endl;
+    cout << "build SyncMap: " << syncMap.DebugString() << endl;
 
-	syncMap.SerializeToString(&wire);
+    syncMap.SerializeToString(&wire);
 
-	return getWireSchema();
+    return getWireSchema();
 
 }
 
 rsb::converter::AnnotatedData SyncMapConverter::deserialize(
-		const string &wireSchema, const string &wire) {
+        const string &wireSchema, const string &wire) {
 
-	if (wireSchema != getWireSchema()) {
-		throw rsb::converter::SerializationException(
-				"Unexpected wire schema " + wireSchema);
-	}
+    if (wireSchema != getWireSchema()) {
+        throw rsb::converter::SerializationException(
+                "Unexpected wire schema " + wireSchema);
+    }
 
-	SyncMap syncMap;
-	syncMap.ParseFromString(wire);
+    SyncMap syncMap;
+    syncMap.ParseFromString(wire);
 
-	boost::shared_ptr<DataMap> dataMap(new DataMap);
+    boost::shared_ptr<DataMap> dataMap(new DataMap);
 
-	for (unsigned int setCount = 0; setCount < syncMap.sets_size();
-			++setCount) {
+    for (unsigned int setCount = 0; setCount < syncMap.sets_size();
+            ++setCount) {
 
-		const SyncMap::ScopeSet &scopeSet = syncMap.sets(setCount);
-		rsb::ScopePtr scope(new rsb::Scope(scopeSet.scope()));
+        const SyncMap::ScopeSet &scopeSet = syncMap.sets(setCount);
+        rsb::ScopePtr scope(new rsb::Scope(scopeSet.scope()));
 
-		for (unsigned int eventCount = 0; eventCount < scopeSet.data_size();
-				++eventCount) {
+        for (unsigned int eventCount = 0; eventCount < scopeSet.data_size();
+                ++eventCount) {
 
-			const SyncMap::ScopeSet::BaseData &eventData = scopeSet.data(
-					eventCount);
+            const SyncMap::ScopeSet::BaseData &eventData = scopeSet.data(
+                    eventCount);
 
-			rsb::EventPtr event(new rsb::Event);
-			event->setScopePtr(scope);
-			rsb::converter::AnnotatedData annotatedData =
-					converterRepository->getConvertersForDeserialization()->getConverter(
-							eventData.wire_schema())->deserialize(
-							eventData.wire_schema(), eventData.data());
-			event->setType(annotatedData.first);
-			event->setData(annotatedData.second);
+            rsb::EventPtr event(new rsb::Event);
+            event->setScopePtr(scope);
+            rsb::converter::AnnotatedData annotatedData =
+                    converterRepository->getConvertersForDeserialization()->getConverter(
+                            eventData.wire_schema())->deserialize(
+                            eventData.wire_schema(), eventData.data());
+            event->setType(annotatedData.first);
+            event->setData(annotatedData.second);
 
-			(*dataMap)[*scope].push_back(event);
+            (*dataMap)[*scope].push_back(event);
 
-		}
+        }
 
-	}
+    }
 
-	return make_pair(getWireSchema(), dataMap);
+    return make_pair(getWireSchema(), dataMap);
 
 }
 

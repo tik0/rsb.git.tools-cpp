@@ -31,14 +31,14 @@ namespace rsbtimesync {
  */
 class InformerHandler: public rsb::Handler {
 public:
-	InformerHandler(rsb::InformerBasePtr informer,
-			const std::string &method = "");
-	virtual ~InformerHandler();
+    InformerHandler(rsb::InformerBasePtr informer, const std::string &method =
+            "");
+    virtual ~InformerHandler();
 
-	virtual void handle(rsb::EventPtr event);
+    virtual void handle(rsb::EventPtr event);
 
 private:
-	rsb::InformerBasePtr informer;
+    rsb::InformerBasePtr informer;
 
 };
 

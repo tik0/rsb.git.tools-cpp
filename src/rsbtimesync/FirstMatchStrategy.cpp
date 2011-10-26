@@ -32,79 +32,82 @@ FirstMatchStrategy::~FirstMatchStrategy() {
 }
 
 string FirstMatchStrategy::getClassName() const {
-	return "FirstMatchStrategy";
+    return "FirstMatchStrategy";
 }
 
 string FirstMatchStrategy::getKey() const {
-	return "firstmatch";
+    return "firstmatch";
 }
 
 void FirstMatchStrategy::setSyncDataHandler(SyncDataHandlerPtr handler) {
-	this->handler = handler;
+    this->handler = handler;
 }
 
 void FirstMatchStrategy::initializeChannels(const rsb::Scope &primaryScope,
-		const set<rsb::Scope> &subsidiaryScopes) {
-	this->primaryScope = primaryScope;
-	for (set<rsb::Scope>::const_iterator scopeIt = subsidiaryScopes.begin(); scopeIt
-			!= subsidiaryScopes.end(); ++scopeIt) {
-		supplementaryEvents[*scopeIt].reset();
-	}
+        const set<rsb::Scope> &subsidiaryScopes) {
+    this->primaryScope = primaryScope;
+    for (set<rsb::Scope>::const_iterator scopeIt = subsidiaryScopes.begin();
+            scopeIt != subsidiaryScopes.end(); ++scopeIt) {
+        supplementaryEvents[*scopeIt].reset();
+    }
 }
 
 void FirstMatchStrategy::handle(rsb::EventPtr event) {
 
-	boost::recursive_mutex::scoped_lock lock(mutex);
+    boost::recursive_mutex::scoped_lock lock(mutex);
 
-	// insert event into data structure
-	if (event->getScopePtr()->operator ==(primaryScope)) {
-		primaryEvent = event;
-	} else {
-		assert(supplementaryEvents.count(event->getScope()));
-		supplementaryEvents[event->getScope()] = event;
-	}
+    // insert event into data structure
+    if (event->getScopePtr()->operator ==(primaryScope)) {
+        primaryEvent = event;
+    } else {
+        assert(supplementaryEvents.count(event->getScope()));
+        supplementaryEvents[event->getScope()] = event;
+    }
 
-	// check if we need to flush buffers
-	if (!event) {
-		return;
-	}
-	for (std::map<rsb::Scope, rsb::EventPtr>::const_iterator it =
-			supplementaryEvents.begin(); it != supplementaryEvents.end(); ++it) {
-		if (!it->second) {
-			return;
-		}
-	}
+    // check if we need to flush buffers
+    if (!event) {
+        return;
+    }
+    for (std::map<rsb::Scope, rsb::EventPtr>::const_iterator it =
+            supplementaryEvents.begin(); it != supplementaryEvents.end();
+            ++it) {
+        if (!it->second) {
+            return;
+        }
+    }
 
-	rsb::EventPtr resultEvent = handler->createEvent();
+    rsb::EventPtr resultEvent = handler->createEvent();
 
-	// all buffers are filled, we can emit an event
-	boost::shared_ptr<SyncMapConverter::DataMap> message(
-			new SyncMapConverter::DataMap);
-	(*message)[primaryEvent->getScope()].push_back(primaryEvent);
-	resultEvent->addCause(primaryEvent->getEventId());
-	primaryEvent.reset();
-	for (std::map<rsb::Scope, rsb::EventPtr>::iterator it =
-			supplementaryEvents.begin(); it != supplementaryEvents.end(); ++it) {
-		(*message)[it->second->getScope()].push_back(it->second);
-		resultEvent->addCause(it->second->getEventId());
-		it->second.reset();
-	}
-	resultEvent->setData(message);
+    // all buffers are filled, we can emit an event
+    boost::shared_ptr<SyncMapConverter::DataMap> message(
+            new SyncMapConverter::DataMap);
+    (*message)[primaryEvent->getScope()].push_back(primaryEvent);
+    resultEvent->addCause(primaryEvent->getEventId());
+    primaryEvent.reset();
+    for (std::map<rsb::Scope, rsb::EventPtr>::iterator it =
+            supplementaryEvents.begin(); it != supplementaryEvents.end();
+            ++it) {
+        (*message)[it->second->getScope()].push_back(it->second);
+        resultEvent->addCause(it->second->getEventId());
+        it->second.reset();
+    }
+    resultEvent->setData(message);
 
-	handler->handle(resultEvent);
+    handler->handle(resultEvent);
 
 }
 
 void FirstMatchStrategy::provideOptions(
-		boost::program_options::options_description &optionDescription) {
-	optionDescription.add_options()((getKey() + "-foo").c_str(), "do not use this, it's a test");
+        boost::program_options::options_description &optionDescription) {
+    optionDescription.add_options()((getKey() + "-foo").c_str(),
+            "do not use this, it's a test");
 }
 
 void FirstMatchStrategy::handleOptions(
-		const boost::program_options::variables_map &options) {
-	if (options.count((getKey() + "-foo").c_str())) {
-		throw invalid_argument("You should not use this option!");
-	}
+        const boost::program_options::variables_map &options) {
+    if (options.count((getKey() + "-foo").c_str())) {
+        throw invalid_argument("You should not use this option!");
+    }
 }
 
 }

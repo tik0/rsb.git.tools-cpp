@@ -22,12 +22,9 @@
 namespace rsbtimesync {
 
 SyncDataHandler::SyncDataHandler() {
-	// TODO Auto-generated constructor stub
-
 }
 
 SyncDataHandler::~SyncDataHandler() {
-	// TODO Auto-generated destructor stub
 }
 
 }

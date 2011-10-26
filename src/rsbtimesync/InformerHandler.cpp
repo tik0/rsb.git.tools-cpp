@@ -24,15 +24,15 @@ using namespace std;
 namespace rsbtimesync {
 
 InformerHandler::InformerHandler(rsb::InformerBasePtr informer,
-		const string &method) :
-	rsb::Handler(method), informer(informer) {
+        const string &method) :
+        rsb::Handler(method), informer(informer) {
 }
 
 InformerHandler::~InformerHandler() {
 }
 
 void InformerHandler::handle(rsb::EventPtr event) {
-	informer->publish(event);
+    informer->publish(event);
 }
 
 }

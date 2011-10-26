@@ -33,10 +33,10 @@ namespace rsbtimesync {
 class SyncDataHandler: public rsb::eventprocessing::Handler {
 public:
 
-	SyncDataHandler();
-	virtual ~SyncDataHandler();
+    SyncDataHandler();
+    virtual ~SyncDataHandler();
 
-	virtual rsb::EventPtr createEvent() = 0;
+    virtual rsb::EventPtr createEvent() = 0;
 
 };
 

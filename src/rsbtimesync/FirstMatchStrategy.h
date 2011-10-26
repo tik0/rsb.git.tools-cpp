@@ -30,30 +30,31 @@ namespace rsbtimesync {
  */
 class FirstMatchStrategy: public SyncStrategy {
 public:
-	FirstMatchStrategy();
-	virtual ~FirstMatchStrategy();
+    FirstMatchStrategy();
+    virtual ~FirstMatchStrategy();
 
-	std::string getClassName() const;
+    std::string getClassName() const;
 
-	virtual std::string getKey() const;
+    virtual std::string getKey() const;
 
-	virtual void setSyncDataHandler(SyncDataHandlerPtr handler);
+    virtual void setSyncDataHandler(SyncDataHandlerPtr handler);
 
-	virtual void initializeChannels(const rsb::Scope &primaryScope,
-			const std::set<rsb::Scope> &subsidiaryScopes);
+    virtual void initializeChannels(const rsb::Scope &primaryScope,
+            const std::set<rsb::Scope> &subsidiaryScopes);
 
-	virtual void handle(rsb::EventPtr event);
+    virtual void handle(rsb::EventPtr event);
 
-	void provideOptions(boost::program_options::options_description &optionDescription);
+    void provideOptions(
+            boost::program_options::options_description &optionDescription);
 
-	void handleOptions(const boost::program_options::variables_map &options);
+    void handleOptions(const boost::program_options::variables_map &options);
 
 private:
-	boost::recursive_mutex mutex;
-	rsb::EventPtr primaryEvent;
-	std::map<rsb::Scope, rsb::EventPtr> supplementaryEvents;
-	rsb::Scope primaryScope;
-	SyncDataHandlerPtr handler;
+    boost::recursive_mutex mutex;
+    rsb::EventPtr primaryEvent;
+    std::map<rsb::Scope, rsb::EventPtr> supplementaryEvents;
+    rsb::Scope primaryScope;
+    SyncDataHandlerPtr handler;
 
 };
 

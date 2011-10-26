@@ -26,11 +26,11 @@ using namespace testing;
 
 int main(int argc, char* argv[]) {
 
-	srand(time(NULL));
-	rsc::logging::LoggerFactory::getInstance()->reconfigure(
-			rsc::logging::Logger::LEVEL_TRACE);
+    srand(time(NULL));
+    rsc::logging::LoggerFactory::getInstance()->reconfigure(
+            rsc::logging::Logger::LEVEL_TRACE);
 
-	InitGoogleMock(&argc, argv);
-	return RUN_ALL_TESTS();
+    InitGoogleMock(&argc, argv);
+    return RUN_ALL_TESTS();
 
 }

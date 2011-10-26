@@ -36,86 +36,86 @@ namespace rsbtimesync {
  */
 class ApproximateTimeStrategy: public SyncStrategy {
 public:
-	ApproximateTimeStrategy();
-	virtual ~ApproximateTimeStrategy();
+    ApproximateTimeStrategy();
+    virtual ~ApproximateTimeStrategy();
 
-	virtual std::string getKey() const;
+    virtual std::string getKey() const;
 
-	virtual void setSyncDataHandler(SyncDataHandlerPtr handler);
+    virtual void setSyncDataHandler(SyncDataHandlerPtr handler);
 
-	virtual void initializeChannels(const rsb::Scope &primaryScope,
-			const std::set<rsb::Scope> &subsidiaryScopes);
+    virtual void initializeChannels(const rsb::Scope &primaryScope,
+            const std::set<rsb::Scope> &subsidiaryScopes);
 
-	virtual void provideOptions(
-			boost::program_options::options_description &optionDescription);
+    virtual void provideOptions(
+            boost::program_options::options_description &optionDescription);
 
-	virtual void handleOptions(
-			const boost::program_options::variables_map &options);
+    virtual void handleOptions(
+            const boost::program_options::variables_map &options);
 
-	virtual void handle(rsb::EventPtr event);
+    virtual void handle(rsb::EventPtr event);
 
 private:
 
-	class Candidate;
-	typedef boost::shared_ptr<Candidate> CandidatePtr;
+    class Candidate;
+    typedef boost::shared_ptr<Candidate> CandidatePtr;
 
-	bool isNoEmptyQueue() const;
+    bool isNoEmptyQueue() const;
 
-	/**
-	 * Makes a new candidate from all heads of #newEventsByScope.
-	 *
-	 * @return candidate from head of queues
-	 */
-	CandidatePtr makeCandidate() const;
+    /**
+     * Makes a new candidate from all heads of #newEventsByScope.
+     *
+     * @return candidate from head of queues
+     */
+    CandidatePtr makeCandidate() const;
 
-	void publishCandidate();
+    void publishCandidate();
 
-	/**
-	 * Recovers the state which was known as the best candidate by replaying all
-	 * events from #trackBackQueuesByScope to #newEventsByScope.
-	 */
-	void recover();
+    /**
+     * Recovers the state which was known as the best candidate by replaying all
+     * events from #trackBackQueuesByScope to #newEventsByScope.
+     */
+    void recover();
 
-	void deleteOlderThanCandidate();
+    void deleteOlderThanCandidate();
 
-	void process();
+    void process();
 
-	/**
-	 * Shifts the current head of a queue in #newEventsByScope to
-	 * #trackBackQueuesByScope.
-	 *
-	 * @param scope scope of the queue to shift
-	 */
-	void shift(const rsb::Scope &scope);
+    /**
+     * Shifts the current head of a queue in #newEventsByScope to
+     * #trackBackQueuesByScope.
+     *
+     * @param scope scope of the queue to shift
+     */
+    void shift(const rsb::Scope &scope);
 
-	/**
-	 * Clears #trackBackQueuesByScope. This makes a track back to a former
-	 * candidate impossible and hence should be called whenever we are sure that
-	 * the currently analyzed candidate is better than the old one which could
-	 * be tracked back with the processed queues so far.
-	 */
-	void clearProcessed();
+    /**
+     * Clears #trackBackQueuesByScope. This makes a track back to a former
+     * candidate impossible and hence should be called whenever we are sure that
+     * the currently analyzed candidate is better than the old one which could
+     * be tracked back with the processed queues so far.
+     */
+    void clearProcessed();
 
-	bool isAllQueuesFilled() const;
+    bool isAllQueuesFilled() const;
 
-	const std::string OPTION_QUEUE_SIZE;
+    const std::string OPTION_QUEUE_SIZE;
 
-	rsc::logging::LoggerPtr logger;
+    rsc::logging::LoggerPtr logger;
 
-	SyncDataHandlerPtr handler;
+    SyncDataHandlerPtr handler;
 
-	unsigned int queueSize;
-	typedef std::map<rsb::Scope, std::deque<rsb::EventPtr> > EventQueueMap;
-	EventQueueMap newEventsByScope;
-	/**
-	 * Contains all events that have been analyzed so far and which are required
-	 * to track back to the best known candidate.
-	 */
-	EventQueueMap trackBackQueuesByScope;
-	boost::mutex mutex;
+    unsigned int queueSize;
+    typedef std::map<rsb::Scope, std::deque<rsb::EventPtr> > EventQueueMap;
+    EventQueueMap newEventsByScope;
+    /**
+     * Contains all events that have been analyzed so far and which are required
+     * to track back to the best known candidate.
+     */
+    EventQueueMap trackBackQueuesByScope;
+    boost::mutex mutex;
 
-	rsb::EventPtr pivot;
-	CandidatePtr currentCandidate;
+    rsb::EventPtr pivot;
+    CandidatePtr currentCandidate;
 
 };
 
