@@ -71,22 +71,25 @@ private:
 	void publishCandidate();
 
 	/**
-	 *
+	 * Recovers the state which was known as the best candidate by replaying all
+	 * events from #trackBackQueuesByScope to #newEventsByScope.
 	 */
 	void recover();
 
 	void deleteOlderThanCandidate();
 
+	void process();
+
 	/**
 	 * Shifts the current head of a queue in #newEventsByScope to
-	 * #processedEventsByScope.
+	 * #trackBackQueuesByScope.
 	 *
 	 * @param scope scope of the queue to shift
 	 */
 	void shift(const rsb::Scope &scope);
 
 	/**
-	 * Clears #processedEventsByScope. This makes a track back to a former
+	 * Clears #trackBackQueuesByScope. This makes a track back to a former
 	 * candidate impossible and hence should be called whenever we are sure that
 	 * the currently analyzed candidate is better than the old one which could
 	 * be tracked back with the processed queues so far.
