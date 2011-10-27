@@ -344,8 +344,28 @@ void ApproximateTimeStrategy::process() {
         EventPtr newCandidateOldest = newCandidate->getOldestEvent();
         shift(newCandidateOldest->getScope());
 
-        // check whether we reached the pivot
+        // get some timing information which can help to prove that the current
+        // candidate is optimal
+        boost::uint64_t youngestInterval =
+                newCandidateYoungest->getMetaData().getCreateTime()
+                        - currentCandidate->getYoungestEvent()->getMetaData().getCreateTime();
+        boost::uint64_t pivotOldInterval =
+                pivot->getMetaData().getCreateTime()
+                        - currentCandidate->getOldestEvent()->getMetaData().getCreateTime();
+        RSCDEBUG(
+                logger,
+                "youngestInterval = " << youngestInterval << ", pivotOldInterval = " << pivotOldInterval);
+
+        // check whether we can publish an event
         if (newCandidateOldest == pivot) {
+            // the search exhausted all candidates by definition
+            publishCandidate();
+        } else if (youngestInterval >= pivotOldInterval) {
+            RSCDEBUG(
+                    logger,
+                    "Provably optimal condition reached even though search was not complete.");
+            // all possible new candidates increase the size more to the younger
+            // side than they can reduce it on the older side
             publishCandidate();
         }
 

@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
     srand(time(NULL));
     setupLogging();
 
-    ::testing::AddGlobalTestEnvironment(new SpreadEnvironment);
+    //::testing::AddGlobalTestEnvironment(new SpreadEnvironment);
     InitGoogleMock(&argc, argv);
     return RUN_ALL_TESTS();
 

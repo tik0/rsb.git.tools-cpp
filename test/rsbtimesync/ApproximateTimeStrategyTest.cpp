@@ -158,7 +158,14 @@ TEST_F(ApproximateTimeStrategyTest, testOneDoubleFrequency) {
 
         }
 
-        boost::this_thread::sleep(boost::posix_time::milliseconds(50));
+        // ensure that we sleep less after sending the synchronized set of
+        // events. Otherwise the optimization condition about size increasing
+        // in the algorithm is triggered and we do not want to test this here.
+        // In other words, the intermediate event on /aaa must be shortly after
+        // the three synchronized events.
+        if (i % 2 != 0) {
+            boost::this_thread::sleep(boost::posix_time::milliseconds(150));
+        }
 
     }
 
