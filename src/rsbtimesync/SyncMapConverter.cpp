@@ -25,8 +25,7 @@
 #include <rsb/Event.h>
 #include <rsb/Scope.h>
 #include <rsb/converter/SerializationException.h>
-
-#include "SyncMap.pb.h"
+#include <rsb/protocol/Notification.h>
 
 using namespace std;
 
@@ -57,7 +56,8 @@ string SyncMapConverter::serialize(const rsb::converter::AnnotatedData &data,
     boost::shared_ptr<DataMap> dataMap = boost::static_pointer_cast<DataMap>(
             data.second);
 
-    SyncMap syncMap;
+    boost::shared_ptr<SyncMap> map(new SyncMap);
+    SyncMap &syncMap = *map;
 
     for (DataMap::const_iterator mapIt = dataMap->begin();
             mapIt != dataMap->end(); ++mapIt) {
@@ -78,9 +78,12 @@ string SyncMapConverter::serialize(const rsb::converter::AnnotatedData &data,
                             pair<string, boost::shared_ptr<string> > >(
                             event->getData());
 
-            SyncMap::ScopeSet::BaseData *data = scopeSet->add_data();
-            data->set_wire_schema(annotatedData->first);
-            data->set_data(*(annotatedData->second));
+            rsb::protocol::Notification *notification =
+                    scopeSet->add_notifications();
+            rsb::protocol::fillNotificationId(*notification, event);
+            rsb::protocol::fillNotificationHeader(*notification, event,
+                    annotatedData->first);
+            notification->set_data(*(annotatedData->second));
 
         }
 
@@ -88,9 +91,11 @@ string SyncMapConverter::serialize(const rsb::converter::AnnotatedData &data,
 
     cout << "build SyncMap: " << syncMap.DebugString() << endl;
 
-    syncMap.SerializeToString(&wire);
+    //syncMap.SerializeToString(&wire);
+    return converter.serialize(
+            make_pair(rsc::runtime::typeName<SyncMap>(), map), wire);
 
-    return getWireSchema();
+    //return getWireSchema();
 
 }
 
@@ -113,20 +118,24 @@ rsb::converter::AnnotatedData SyncMapConverter::deserialize(
         const SyncMap::ScopeSet &scopeSet = syncMap.sets(setCount);
         rsb::ScopePtr scope(new rsb::Scope(scopeSet.scope()));
 
-        for (unsigned int eventCount = 0; eventCount < scopeSet.data_size();
-                ++eventCount) {
+        for (unsigned int notificationIndex = 0;
+                notificationIndex < scopeSet.notifications_size();
+                ++notificationIndex) {
 
-            const SyncMap::ScopeSet::BaseData &eventData = scopeSet.data(
-                    eventCount);
+            const rsb::protocol::Notification &notification =
+                    scopeSet.notifications(notificationIndex);
 
             rsb::EventPtr event(new rsb::Event);
             event->setScopePtr(scope);
             rsb::converter::AnnotatedData annotatedData =
                     converterRepository->getConvertersForDeserialization()->getConverter(
-                            eventData.wire_schema())->deserialize(
-                            eventData.wire_schema(), eventData.data());
+                            notification.wire_schema())->deserialize(
+                            notification.wire_schema(), notification.data());
             event->setType(annotatedData.first);
             event->setData(annotatedData.second);
+
+            rsb::protocol::fillEvent(event, notification, annotatedData.second,
+                    annotatedData.first);
 
             (*dataMap)[*scope].push_back(event);
 

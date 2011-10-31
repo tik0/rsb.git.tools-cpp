@@ -2,6 +2,7 @@
 PROTOBUF_GENERATE(PROTOFILES "${CMAKE_CURRENT_SOURCE_DIR}/rsbtimesync/SyncMap.proto"
                   PROTOROOT "${CMAKE_CURRENT_SOURCE_DIR}/rsbtimesync"
                   OUTPATH "${CMAKE_CURRENT_BINARY_DIR}/rsbtimesync-generated"
+                  INCLUDES ${RSBPROTO_ROOT}
                   CPP
                   PROTO_SOURCES PROTO_HEADERS)
 

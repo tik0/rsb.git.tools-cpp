@@ -1,18 +1,12 @@
 package rsbtimesync;
 
+import "rsb/protocol/Notification.proto";
+
 message SyncMap {
 
 	message ScopeSet {
-	
 		required bytes scope = 1;
-		
-		message BaseData {
-			required bytes wire_schema = 1;
-			required bytes data = 2;
-		}
-		
-		repeated BaseData data = 2;
-		
+		repeated .rsb.protocol.Notification notifications = 2;
 	}
 	
 	repeated ScopeSet sets = 1;
