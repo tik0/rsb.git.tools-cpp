@@ -26,6 +26,9 @@
 #include <rsb/Scope.h>
 #include <rsb/converter/SerializationException.h>
 #include <rsb/protocol/Notification.h>
+#include <rsb/converter/ProtocolBufferConverter.h>
+
+#include "SyncMap.pb.h"
 
 using namespace std;
 
@@ -33,12 +36,21 @@ namespace rsbtimesync {
 
 SyncMapConverter::SyncMapConverter(
         rsb::converter::Repository<std::string>::Ptr converterRepository) :
-        rsb::converter::Converter<string>("SyncMap", "SyncMap", true), converterRepository(
-                converterRepository) {
+        rsb::converter::Converter<string>("dummy", "dummy", true), converterRepository(
+                converterRepository), converter(
+                new rsb::converter::ProtocolBufferConverter<SyncMap>) {
 
 }
 
 SyncMapConverter::~SyncMapConverter() {
+}
+
+string SyncMapConverter::getDataType() const {
+    return converter->getDataType();
+}
+
+string SyncMapConverter::getWireSchema() const {
+    return converter->getWireSchema();
 }
 
 string SyncMapConverter::getClassName() const {
@@ -56,13 +68,12 @@ string SyncMapConverter::serialize(const rsb::converter::AnnotatedData &data,
     boost::shared_ptr<DataMap> dataMap = boost::static_pointer_cast<DataMap>(
             data.second);
 
-    boost::shared_ptr<SyncMap> map(new SyncMap);
-    SyncMap &syncMap = *map;
+    boost::shared_ptr<SyncMap> syncMap(new SyncMap);
 
     for (DataMap::const_iterator mapIt = dataMap->begin();
             mapIt != dataMap->end(); ++mapIt) {
 
-        SyncMap::ScopeSet *scopeSet = syncMap.add_sets();
+        SyncMap::ScopeSet *scopeSet = syncMap->add_sets();
         scopeSet->set_scope(mapIt->first.toString());
 
         cout << "Processing scope " << mapIt->first << endl;
@@ -89,13 +100,10 @@ string SyncMapConverter::serialize(const rsb::converter::AnnotatedData &data,
 
     }
 
-    cout << "build SyncMap: " << syncMap.DebugString() << endl;
+    cout << "build SyncMap: " << syncMap->DebugString() << endl;
 
-    //syncMap.SerializeToString(&wire);
-    return converter.serialize(
-            make_pair(rsc::runtime::typeName<SyncMap>(), map), wire);
-
-    //return getWireSchema();
+    return converter->serialize(
+            make_pair(rsc::runtime::typeName<SyncMap>(), syncMap), wire);
 
 }
 
@@ -143,7 +151,7 @@ rsb::converter::AnnotatedData SyncMapConverter::deserialize(
 
     }
 
-    return make_pair(getWireSchema(), dataMap);
+    return make_pair(getDataType(), dataMap);
 
 }
 
