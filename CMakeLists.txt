@@ -8,7 +8,7 @@ OPTION(OPTION_BUILD_EXAMPLES "Whether to build the examples or not" TRUE)
 OPTION(OPTION_BUILD_TESTS "Whether to build the tests or not" TRUE)
 
 SET(LIBRARY_NAME "rsbts")
-SET(BINARY_NAME "rsbtimesync")
+SET(BINARY_NAME "rsb_timesync")
 
 SET(GTEST_DIR "${CMAKE_SOURCE_DIR}/3rdparty/gmock/gtest")
 SET(GTEST_INCLUDE_DIR "${GTEST_DIR}/include")

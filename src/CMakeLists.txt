@@ -1,12 +1,14 @@
 
+INCLUDE(InstallFilesRecursive)
+
 PROTOBUF_GENERATE(PROTOFILES "${CMAKE_CURRENT_SOURCE_DIR}/rsbtimesync/SyncMap.proto"
                   PROTOROOT "${CMAKE_CURRENT_SOURCE_DIR}/rsbtimesync"
-                  OUTPATH "${CMAKE_CURRENT_BINARY_DIR}/rsbtimesync-generated"
+                  OUTPATH "${CMAKE_CURRENT_BINARY_DIR}/rsbtimesync"
                   INCLUDES ${RSBPROTO_ROOT}
                   CPP
                   PROTO_SOURCES PROTO_HEADERS)
 
-INCLUDE_DIRECTORIES(BEFORE "${CMAKE_CURRENT_BINARY_DIR}/rsbtimesync-generated")
+INCLUDE_DIRECTORIES(BEFORE "${CMAKE_CURRENT_BINARY_DIR}/rsbtimesync")
 
 SET(RSBTS_SOURCES rsbtimesync/ApproximateTimeStrategy.cpp
                   rsbtimesync/FirstMatchStrategy.cpp
@@ -35,3 +37,10 @@ TARGET_LINK_LIBRARIES(${LIBRARY_NAME} ${RSB_LIBRARIES}
 
 ADD_EXECUTABLE(${BINARY_NAME} rsbtimesync/rsbtimesync.cpp)
 TARGET_LINK_LIBRARIES(${BINARY_NAME} ${LIBRARY_NAME})
+
+INSTALL(TARGETS ${LIBRARY_NAME} ${BINARY_NAME}
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
+        
+INSTALL_FILES_RECURSIVE(include RSBTS_HEADERS)
