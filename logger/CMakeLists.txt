@@ -14,15 +14,15 @@ IF(Boost_VERSION LESS 103801)
     LIST(REMOVE_ITEM LOGGER_HEADERS "StatisticsEventFormatter.h")
 ENDIF()
 
-ADD_EXECUTABLE(rsblogger ${LOGGER_SOURCES} ${LOGGER_HEADERS})
+ADD_EXECUTABLE(logger ${LOGGER_SOURCES} ${LOGGER_HEADERS})
 
-TARGET_LINK_LIBRARIES(rsblogger ${RSC_LIBRARIES}
-                                ${RSB_LIBRARIES}
-                                ${Boost_LIBRARIES}
-                                ${PROTOBUF_LIBRARIES})
+TARGET_LINK_LIBRARIES(logger ${RSC_LIBRARIES}
+                             ${RSB_LIBRARIES}
+                             ${Boost_LIBRARIES}
+                             ${PROTOBUF_LIBRARIES})
 
 # Install target
 
-INSTALL(TARGETS rsblogger
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib)
+INSTALL(PROGRAMS    "${CMAKE_CURRENT_BINARY_DIR}/logger"
+        DESTINATION "bin"
+	RENAME      "${BINARY_PREFIX}logger${VERSION_SUFFIX}")
