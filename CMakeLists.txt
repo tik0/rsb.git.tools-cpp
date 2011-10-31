@@ -69,15 +69,16 @@ LINK_DIRECTORIES(${Boost_LIBRARY_DIRS})
 SET(RSB_TOOLS_VERSION_MAJOR ${RSB_VERSION_MAJOR})
 SET(RSB_TOOLS_VERSION_MINOR ${RSB_VERSION_MINOR})
 SET(RSB_TOOLS_VERSION_PATCH ${RSB_VERSION_PATCH})
+SET(VERSION_SUFFIX "${RSB_TOOLS_VERSION_MAJOR}.${RSB_TOOLS_VERSION_MINOR}")
 SET(BINARY_PREFIX  "rsb-") # used by install rule in subdirs
-SET(VERSION_SUFFIX "cpp${RSB_TOOLS_VERSION_MAJOR}.${RSB_TOOLS_VERSION_MINOR}")
+SET(BINARY_SUFFIX "cpp${VERSION_SUFFIX}")
 ADD_SUBDIRECTORY(logger)
 
 # Packaging
 SET(CPACK_PACKAGE_VERSION_MAJOR ${RSB_TOOLS_VERSION_MAJOR})
 SET(CPACK_PACKAGE_VERSION_MINOR ${RSB_TOOLS_VERSION_MINOR})
 SET(CPACK_PACKAGE_VERSION_PATCH ${RSB_TOOLS_VERSION_PATCH})
-SET(PACKAGE_BASE_NAME     "rsb-tools-${VERSION_SUFFIX}")
+SET(PACKAGE_BASE_NAME     "rsb-tools-${BINARY_SUFFIX}")
 SET(CPACK_PACKAGE_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
 SET(CPACK_PACKAGE_VENDOR  "CoR-Lab, Bielefeld University")
 
@@ -95,15 +96,15 @@ IF(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         FILE(WRITE "${PRERM_SCRIPT}"    "#!/bin/sh\n\n")
         FOREACH(NAME "logger")
             FILE(APPEND "${POSTINST_SCRIPT}"
-                        "update-alternatives --install                       \\
-                           /usr/bin/${BINARY_PREFIX}${NAME}                  \\
-                           ${BINARY_PREFIX}${NAME}                           \\
-                           /usr/bin/${BINARY_PREFIX}${NAME}${VERSION_SUFFIX} \\
+                        "update-alternatives --install                      \\
+                           /usr/bin/${BINARY_PREFIX}${NAME}                 \\
+                           ${BINARY_PREFIX}${NAME}                          \\
+                           /usr/bin/${BINARY_PREFIX}${NAME}${BINARY_SUFFIX} \\
                            80\n\n")
             FILE(APPEND "${PRERM_SCRIPT}"
-                        "update-alternatives --remove                            \\
-                           ${BINARY_PREFIX}${NAME}                               \\
-                           /usr/bin/${BINARY_PREFIX}${NAME}${VERSION_SUFFIX}\n\n")
+                        "update-alternatives --remove                           \\
+                           ${BINARY_PREFIX}${NAME}                              \\
+                           /usr/bin/${BINARY_PREFIX}${NAME}${BINARY_SUFFIX}\n\n")
         ENDFOREACH()
         EXECUTE_PROCESS(COMMAND "chmod +x ${POSTINST_SCRIPT} ${PRERM_SCRIPT}")
 
@@ -115,7 +116,7 @@ IF(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         SET(CPACK_DEBIAN_PACKAGE_PRIORITY    "optional")
         SET(CPACK_DEBIAN_PACKAGE_SECTION     "devel")
         SET(CPACK_DEBIAN_ARCHITECTURE        "${CMAKE_SYSTEM_PROCESSOR}")
-        SET(CPACK_DEBIAN_PACKAGE_DEPENDS     "libc6, rsc (= ${CPACK_PACKAGE_VERSION}), rsb (= ${CPACK_PACKAGE_VERSION})")
+        SET(CPACK_DEBIAN_PACKAGE_DEPENDS     "libc6, rsc${VERSION_SUFFIX}, rsb${VERSION_SUFFIX}")
         SET(CPACK_DEBIAN_PACKAGE_RECOMMENDS  "spread (>= 4.0)")
 
         SET(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_BINARY_DIR}/postinst;${CMAKE_CURRENT_BINARY_DIR}/prerm")
