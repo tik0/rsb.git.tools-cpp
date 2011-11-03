@@ -23,7 +23,8 @@ INCLUDE_DIRECTORIES(BEFORE ../src
                            ${GMOCK_INCLUDE_DIR})
 
 ADD_EXECUTABLE(rsbtimesynctest rsbtimesync/rsbtimesynctest.cpp
-                               rsbtimesync/ApproximateTimeStrategyTest.cpp)
+                               rsbtimesync/ApproximateTimeStrategyTest.cpp
+                               rsbtimesync/SyncMapConverterTest.cpp)
 
 TARGET_LINK_LIBRARIES(rsbtimesynctest ${LIBRARY_NAME}
                                       ${GMOCK_LIBRARY_NAME})

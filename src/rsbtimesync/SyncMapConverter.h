@@ -22,16 +22,32 @@
 #include <map>
 #include <vector>
 
+#include <rsb/Event.h>
+#include <rsb/Scope.h>
 #include <rsb/converter/Converter.h>
 #include <rsb/converter/Repository.h>
 
 namespace rsbtimesync {
 
+/**
+ * A converter for aggregated events ordered by their scope and time for each
+ * scope.
+ *
+ * @author jwienke
+ */
 class SyncMapConverter: public rsb::converter::Converter<std::string> {
 public:
 
     typedef std::map<rsb::Scope, std::vector<rsb::EventPtr> > DataMap;
 
+    /**
+     * Constructs a new converter and optionally allows to specify a
+     * converter::Repository which will be used for the contained events of
+     * arbitrary types.
+     *
+     * @param converterRepository the repository to use. If not specified, the
+     *                            default #stringConverterRepository is used.
+     */
     SyncMapConverter(
             rsb::converter::Repository<std::string>::Ptr converterRepository =
                     rsb::converter::stringConverterRepository());
