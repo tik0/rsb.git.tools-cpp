@@ -377,8 +377,6 @@ void ApproximateTimeStrategy::process() {
 
 void ApproximateTimeStrategy::handle(EventPtr event) {
 
-    // TODO optimize access to queues and scope of event
-
     RSCDEBUG(logger, "Handling event " << event);
 
     Scope scope = event->getScope();
