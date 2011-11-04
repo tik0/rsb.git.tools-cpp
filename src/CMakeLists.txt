@@ -1,7 +1,7 @@
 
 INCLUDE(InstallFilesRecursive)
 
-PROTOBUF_GENERATE(PROTOFILES "${CMAKE_CURRENT_SOURCE_DIR}/rsbtimesync/SyncMap.proto"
+PROTOBUF_GENERATE(PROTOFILES "${CMAKE_CURRENT_SOURCE_DIR}/rsbtimesync/EventsByScopeMap.proto"
                   PROTOROOT "${CMAKE_CURRENT_SOURCE_DIR}/rsbtimesync"
                   OUTPATH "${CMAKE_CURRENT_BINARY_DIR}/rsbtimesync"
                   INCLUDES ${RSBPROTO_ROOT}

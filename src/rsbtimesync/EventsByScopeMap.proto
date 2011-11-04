@@ -1,8 +1,8 @@
-package rsbtimesync;
+package rsb.protocol.collections;
 
 import "rsb/protocol/Notification.proto";
 
-message SyncMap {
+message EventsByScopeMap {
 
 	message ScopeSet {
 		required bytes scope = 1;

@@ -29,7 +29,7 @@
 #include <rsb/protocol/Notification.h>
 #include <rsb/converter/ProtocolBufferConverter.h>
 
-#include "SyncMap.pb.h"
+#include "EventsByScopeMap.pb.h"
 
 #include "EventCollections.h"
 
@@ -40,10 +40,12 @@ namespace rsbtimesync {
 EventsByScopeMapConverter::EventsByScopeMapConverter(
         rsb::converter::ConverterSelectionStrategy<std::string>::Ptr serializationConverters,
         rsb::converter::ConverterSelectionStrategy<std::string>::Ptr deserializationConverters) :
-        rsb::converter::Converter<string>("dummy", RSB_TYPE_TAG(EventsByScopeMap)), serializationConverters(
+        rsb::converter::Converter<string>("dummy",
+                RSB_TYPE_TAG(EventsByScopeMap)), serializationConverters(
                 serializationConverters), deserializationConverters(
                 deserializationConverters), converter(
-                new rsb::converter::ProtocolBufferConverter<SyncMap>) {
+                new rsb::converter::ProtocolBufferConverter<
+                        rsb::protocol::collections::EventsByScopeMap>) {
 
 }
 
@@ -58,24 +60,26 @@ string EventsByScopeMapConverter::getClassName() const {
     return "EventsByScopeMapConverter";
 }
 
-string EventsByScopeMapConverter::serialize(const rsb::converter::AnnotatedData &data,
-        string &wire) {
+string EventsByScopeMapConverter::serialize(
+        const rsb::converter::AnnotatedData &data, string &wire) {
 
     if (data.first != getDataType()) {
         throw rsb::converter::SerializationException(
                 "Called with unsupported data type " + data.first);
     }
 
-    boost::shared_ptr<EventsByScopeMap> dataMap = boost::static_pointer_cast<EventsByScopeMap>(
-            data.second);
+    boost::shared_ptr<EventsByScopeMap> dataMap = boost::static_pointer_cast<
+            EventsByScopeMap>(data.second);
 
-    boost::shared_ptr<SyncMap> syncMap(new SyncMap);
+    boost::shared_ptr<rsb::protocol::collections::EventsByScopeMap> syncMap(
+            new rsb::protocol::collections::EventsByScopeMap);
 
     // iterate over all scopes
     for (EventsByScopeMap::const_iterator mapIt = dataMap->begin();
             mapIt != dataMap->end(); ++mapIt) {
 
-        SyncMap::ScopeSet *scopeSet = syncMap->add_sets();
+        rsb::protocol::collections::EventsByScopeMap::ScopeSet *scopeSet =
+                syncMap->add_sets();
         scopeSet->set_scope(mapIt->first.toString());
 
         // iterate over all events in one scope
@@ -86,8 +90,8 @@ string EventsByScopeMapConverter::serialize(const rsb::converter::AnnotatedData 
             // convert event to notification
             rsb::EventPtr event = *eventIt;
 
-            rsb::converter::Converter<string>::Ptr c = serializationConverters->getConverter(
-                    event->getType());
+            rsb::converter::Converter<string>::Ptr c =
+                    serializationConverters->getConverter(event->getType());
             string wire;
             string wireSchema = c->serialize(
                     make_pair(event->getType(), event->getData()), wire);
@@ -104,7 +108,10 @@ string EventsByScopeMapConverter::serialize(const rsb::converter::AnnotatedData 
     }
 
     return converter->serialize(
-            make_pair(rsc::runtime::typeName<SyncMap>(), syncMap), wire);
+            make_pair(
+                    rsc::runtime::typeName<
+                            rsb::protocol::collections::EventsByScopeMap>(),
+                    syncMap), wire);
 
 }
 
@@ -116,7 +123,7 @@ rsb::converter::AnnotatedData EventsByScopeMapConverter::deserialize(
                 "Unexpected wire schema " + wireSchema);
     }
 
-    SyncMap syncMap;
+    rsb::protocol::collections::EventsByScopeMap syncMap;
     syncMap.ParseFromString(wire);
 
     boost::shared_ptr<EventsByScopeMap> dataMap(new EventsByScopeMap);
@@ -125,7 +132,8 @@ rsb::converter::AnnotatedData EventsByScopeMapConverter::deserialize(
     for (unsigned int setCount = 0; setCount < syncMap.sets_size();
             ++setCount) {
 
-        const SyncMap::ScopeSet &scopeSet = syncMap.sets(setCount);
+        const rsb::protocol::collections::EventsByScopeMap::ScopeSet &scopeSet =
+                syncMap.sets(setCount);
         rsb::ScopePtr scope(new rsb::Scope(scopeSet.scope()));
 
         // iterate over all notifications in each scope set
