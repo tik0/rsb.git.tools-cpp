@@ -23,7 +23,7 @@
 
 #include <boost/shared_ptr.hpp>
 
-#include <rsb/converter/ByteArrayConverter.h>
+#include <rsb/converter/Converter.h>
 
 namespace rsbtimesync {
 
@@ -33,12 +33,14 @@ namespace rsbtimesync {
  *
  * @author jwienke
  */
-class SchemaAndByteArrayConverter: public rsb::converter::ByteArrayConverter {
+class SchemaAndByteArrayConverter: public rsb::converter::Converter<std::string> {
 public:
 
     SchemaAndByteArrayConverter();
     virtual ~SchemaAndByteArrayConverter();
 
+    std::string serialize(const rsb::converter::AnnotatedData &data,
+            std::string &wire);
     rsb::converter::AnnotatedData deserialize(const std::string &wireSchema,
             const std::string &wire);
 

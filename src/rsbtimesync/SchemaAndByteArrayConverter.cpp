@@ -25,21 +25,33 @@ using namespace std;
 
 namespace rsbtimesync {
 
-SchemaAndByteArrayConverter::SchemaAndByteArrayConverter() {
+// TODO what to do with the wire schema? This will always change...
+SchemaAndByteArrayConverter::SchemaAndByteArrayConverter() :
+        rsb::converter::Converter<string>("schemaandbytearray", "any", true) {
 }
 
 SchemaAndByteArrayConverter::~SchemaAndByteArrayConverter() {
 }
 
+string SchemaAndByteArrayConverter::serialize(
+        const rsb::converter::AnnotatedData &data, string &wire) {
+
+    boost::shared_ptr<pair<string, boost::shared_ptr<string> > > realData =
+            boost::static_pointer_cast<pair<string, boost::shared_ptr<string> > >(
+                    data.second);
+
+    wire = *(realData->second);
+    return realData->first;
+
+}
+
 rsb::converter::AnnotatedData SchemaAndByteArrayConverter::deserialize(
-        const string &wireType, const string &wire) {
-    rsb::converter::AnnotatedData originalData =
-            rsb::converter::ByteArrayConverter::deserialize(wireType, wire);
+        const string &wireSchema, const string &wire) {
     return make_pair(
-            "schemaandbytearray",
+            getDataType(),
             boost::shared_ptr<pair<string, boost::shared_ptr<void> > >(
-                    new pair<string, boost::shared_ptr<void> >(wireType,
-                            originalData.second)));
+                    new pair<string, boost::shared_ptr<void> >(wireSchema,
+                            boost::shared_ptr<string>(new string(wire)))));
 }
 
 }

@@ -63,6 +63,8 @@ rsb::Scope outScope;
 rsb::Scope primaryScope;
 set<rsb::Scope> supplementaryScopes;
 
+rsb::converter::ConverterSelectionStrategy<string>::Ptr noConversionSelectionStrategy;
+
 map<string, SyncStrategyPtr> strategiesByName;
 SyncStrategyPtr strategy;
 
@@ -201,7 +203,7 @@ void configureConversion() {
                             new rsb::converter::AlwaysApplicable()),
                     rsb::converter::Converter<string>::Ptr(
                             new SchemaAndByteArrayConverter())));
-    rsb::converter::ConverterSelectionStrategy<string>::Ptr selectionStrategy(
+    noConversionSelectionStrategy.reset(
             new rsb::converter::PredicateConverterList<string>(
                     converters.begin(), converters.end()));
     // adapt default participant configuration
@@ -209,7 +211,7 @@ void configureConversion() {
             rsb::Factory::getInstance().getDefaultParticipantConfig();
     rsb::ParticipantConfig::Transport transport = config.getTransport("spread");
     rsc::runtime::Properties options = transport.getOptions();
-    options["converters"] = selectionStrategy;
+    options["converters"] = noConversionSelectionStrategy;
     transport.setOptions(options);
     config.addTransport(transport);
     rsb::Factory::getInstance().setDefaultParticipantConfig(config);
@@ -226,7 +228,8 @@ rsb::ParticipantConfig createInformerConfig() {
                     rsb::converter::ConverterPredicatePtr(
                             new rsb::converter::AlwaysApplicable()),
                     rsb::converter::Converter<string>::Ptr(
-                            new SyncMapConverter)));
+                            new SyncMapConverter(noConversionSelectionStrategy,
+                                    noConversionSelectionStrategy))));
     rsb::converter::ConverterSelectionStrategy<string>::Ptr selectionStrategy(
             new rsb::converter::PredicateConverterList<string>(
                     converters.begin(), converters.end()));
@@ -257,7 +260,7 @@ public:
 
     rsb::EventPtr createEvent() {
         rsb::EventPtr event = informer->createEvent();
-        event->setType("SyncMap");
+        event->setType(rsc::runtime::typeName<SyncMapConverter::DataMap>());
         return event;
     }
 
@@ -287,9 +290,9 @@ int main(int argc, char **argv) {
 
     configureConversion();
 
-    rsb::Informer<void>::Ptr informer =
-            rsb::Factory::getInstance().createInformer<void>(outScope,
-                    createInformerConfig(), "SyncMap");
+    rsb::Informer<SyncMapConverter::DataMap>::Ptr informer =
+            rsb::Factory::getInstance().createInformer<SyncMapConverter::DataMap>(
+                    outScope, createInformerConfig());
     SyncDataHandlerPtr handler(new InformingSyncDataHandler(informer));
 
     // configure selected sync strategy
