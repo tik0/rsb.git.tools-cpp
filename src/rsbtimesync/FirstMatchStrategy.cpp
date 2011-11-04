@@ -21,6 +21,8 @@
 
 #include <rsb/EventId.h>
 
+#include "EventCollections.h"
+
 using namespace std;
 
 namespace rsbtimesync {
@@ -79,8 +81,8 @@ void FirstMatchStrategy::handle(rsb::EventPtr event) {
     rsb::EventPtr resultEvent = handler->createEvent();
 
     // all buffers are filled, we can emit an event
-    boost::shared_ptr<SyncMapConverter::DataMap> message(
-            new SyncMapConverter::DataMap);
+    boost::shared_ptr<EventsByScopeMap> message(
+            new EventsByScopeMap);
     (*message)[primaryEvent->getScope()].push_back(primaryEvent);
     resultEvent->addCause(primaryEvent->getEventId());
     primaryEvent.reset();

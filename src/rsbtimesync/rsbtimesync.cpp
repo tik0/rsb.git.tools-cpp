@@ -40,10 +40,11 @@
 #include <rsc/threading/SynchronizedQueue.h>
 
 #include "ApproximateTimeStrategy.h"
+#include "EventCollections.h"
 #include "FirstMatchStrategy.h"
 #include "InformerHandler.h"
 #include "SchemaAndByteArrayConverter.h"
-#include "SyncMapConverter.h"
+#include "EventsByScopeMapConverter.h"
 #include "SyncStrategy.h"
 #include "TimeFrameStrategy.h"
 
@@ -228,7 +229,7 @@ rsb::ParticipantConfig createInformerConfig() {
                     rsb::converter::ConverterPredicatePtr(
                             new rsb::converter::AlwaysApplicable()),
                     rsb::converter::Converter<string>::Ptr(
-                            new SyncMapConverter(noConversionSelectionStrategy,
+                            new EventsByScopeMapConverter(noConversionSelectionStrategy,
                                     noConversionSelectionStrategy))));
     rsb::converter::ConverterSelectionStrategy<string>::Ptr selectionStrategy(
             new rsb::converter::PredicateConverterList<string>(
@@ -260,7 +261,7 @@ public:
 
     rsb::EventPtr createEvent() {
         rsb::EventPtr event = informer->createEvent();
-        event->setType(rsc::runtime::typeName<SyncMapConverter::DataMap>());
+        event->setType(rsc::runtime::typeName<EventsByScopeMap>());
         return event;
     }
 
@@ -290,8 +291,8 @@ int main(int argc, char **argv) {
 
     configureConversion();
 
-    rsb::Informer<SyncMapConverter::DataMap>::Ptr informer =
-            rsb::Factory::getInstance().createInformer<SyncMapConverter::DataMap>(
+    rsb::Informer<EventsByScopeMap>::Ptr informer =
+            rsb::Factory::getInstance().createInformer<EventsByScopeMap>(
                     outScope, createInformerConfig());
     SyncDataHandlerPtr handler(new InformingSyncDataHandler(informer));
 

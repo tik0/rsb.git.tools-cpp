@@ -19,28 +19,14 @@
 
 #pragma once
 
-#include <rsb/eventprocessing/Handler.h>
+#include <map>
+#include <vector>
 
-#include "EventsByScopeMapConverter.h"
+#include <rsb/Event.h>
+#include <rsb/Scope.h>
 
 namespace rsbtimesync {
 
-/**
- * A handler for sync data.
- *
- * @author jwienke
- */
-class SyncDataHandler: public rsb::eventprocessing::Handler {
-public:
-
-    SyncDataHandler();
-    virtual ~SyncDataHandler();
-
-    virtual rsb::EventPtr createEvent() = 0;
-
-};
-
-typedef boost::shared_ptr<SyncDataHandler> SyncDataHandlerPtr;
+typedef std::map<rsb::Scope, std::vector<rsb::EventPtr> > EventsByScopeMap;
 
 }
-

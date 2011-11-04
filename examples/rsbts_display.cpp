@@ -33,7 +33,8 @@
 #include <rsb/Scope.h>
 #include <rsb/converter/Converter.h>
 
-#include "rsbtimesync/SyncMapConverter.h"
+#include "rsbtimesync/EventCollections.h"
+#include "rsbtimesync/EventsByScopeMapConverter.h"
 
 using namespace std;
 namespace po = boost::program_options;
@@ -45,92 +46,92 @@ const char *OPTION_SCOPE = "scope";
 rsb::Scope scope;
 
 rsc::logging::LoggerPtr logger = rsc::logging::Logger::getLogger(
-		"rsbtimesync.display");
+        "rsbtimesync.display");
 
 boost::shared_ptr<rsc::threading::SynchronizedQueue<rsb::EventPtr> > eventQueue(
-		new rsc::threading::SynchronizedQueue<rsb::EventPtr>);
+        new rsc::threading::SynchronizedQueue<rsb::EventPtr>);
 
 bool parseOptions(int argc, char **argv) {
 
-	// Declare the supported options.
-	po::options_description desc("Allowed options");
-	desc.add_options()(OPTION_HELP, "produce help message")(OPTION_SCOPE,
-			po::value<std::string>(), "scope to listen on");
+    // Declare the supported options.
+    po::options_description desc("Allowed options");
+    desc.add_options()(OPTION_HELP, "produce help message")(OPTION_SCOPE,
+            po::value<std::string>(), "scope to listen on");
 
-	// positional arguments will got into supplementary scopes
-	po::positional_options_description p;
-	p.add(OPTION_SCOPE, -1);
+    // positional arguments will got into supplementary scopes
+    po::positional_options_description p;
+    p.add(OPTION_SCOPE, -1);
 
-	po::variables_map vm;
-	po::store(
-			po::command_line_parser(argc, argv).options(desc).positional(p).run(),
-			vm);
-	po::notify(vm);
+    po::variables_map vm;
+    po::store(
+            po::command_line_parser(argc, argv).options(desc).positional(p).run(),
+            vm);
+    po::notify(vm);
 
-	// start processing the options
+    // start processing the options
 
-	if (vm.count(OPTION_HELP)) {
-		cout << desc << "\n";
-		return false;
-	}
+    if (vm.count(OPTION_HELP)) {
+        cout << desc << "\n";
+        return false;
+    }
 
-	// out scope
-	if (vm.count(OPTION_SCOPE)) {
-		scope = rsb::Scope(vm[OPTION_SCOPE].as<string>());
-	} else {
-		cerr << "No scope defined." << endl;
-		return false;
-	}
+    // out scope
+    if (vm.count(OPTION_SCOPE)) {
+        scope = rsb::Scope(vm[OPTION_SCOPE].as<string>());
+    } else {
+        cerr << "No scope defined." << endl;
+        return false;
+    }
 
-	return true;
+    return true;
 
 }
 
 int main(int argc, char **argv) {
 
-	rsc::logging::LoggerFactory::getInstance()->reconfigure(
-			rsc::logging::Logger::LEVEL_TRACE);
+    rsc::logging::LoggerFactory::getInstance()->reconfigure(
+            rsc::logging::Logger::LEVEL_TRACE);
 
-	bool parsed = parseOptions(argc, argv);
-	if (!parsed) {
-		cerr << "Error parsing arguments. Terminating." << endl;
-		return EXIT_FAILURE;
-	}
+    bool parsed = parseOptions(argc, argv);
+    if (!parsed) {
+        cerr << "Error parsing arguments. Terminating." << endl;
+        return EXIT_FAILURE;
+    }
 
-	// register converter
-	rsb::converter::stringConverterRepository()->registerConverter(
-			rsb::converter::Converter<string>::Ptr(new SyncMapConverter));
+    // register converter
+    rsb::converter::stringConverterRepository()->registerConverter(
+            rsb::converter::Converter<string>::Ptr(
+                    new EventsByScopeMapConverter));
 
-	rsb::ListenerPtr listener = rsb::Factory::getInstance().createListener(
-			scope);
-	listener->addHandler(
-			rsb::HandlerPtr(new rsb::EventQueuePushHandler(eventQueue)));
+    rsb::ListenerPtr listener = rsb::Factory::getInstance().createListener(
+            scope);
+    listener->addHandler(
+            rsb::HandlerPtr(new rsb::EventQueuePushHandler(eventQueue)));
 
-	while (true) {
+    while (true) {
 
-		rsb::EventPtr event = eventQueue->pop();
+        rsb::EventPtr event = eventQueue->pop();
 
-		cout << "received event: " << event << endl;
+        cout << "received event: " << event << endl;
 
-		boost::shared_ptr<SyncMapConverter::DataMap> map =
-				boost::static_pointer_cast<SyncMapConverter::DataMap>(
-						event->getData());
+        boost::shared_ptr<EventsByScopeMap> map = boost::static_pointer_cast<
+                EventsByScopeMap>(event->getData());
 
-		for (SyncMapConverter::DataMap::const_iterator mapIt = map->begin();
-				mapIt != map->end(); ++mapIt) {
+        for (EventsByScopeMap::const_iterator mapIt = map->begin();
+                mapIt != map->end(); ++mapIt) {
 
-			cout << "Scope: " << mapIt->first.toString() << ":" << endl;
+            cout << "Scope: " << mapIt->first.toString() << ":" << endl;
 
-			for (vector<rsb::EventPtr>::const_iterator eventIt =
-					mapIt->second.begin(); eventIt != mapIt->second.end();
-					++eventIt) {
-				cout << "\t" << *eventIt << endl;
-			}
+            for (vector<rsb::EventPtr>::const_iterator eventIt =
+                    mapIt->second.begin(); eventIt != mapIt->second.end();
+                    ++eventIt) {
+                cout << "\t" << *eventIt << endl;
+            }
 
-		}
+        }
 
-	}
+    }
 
-	return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 
 }

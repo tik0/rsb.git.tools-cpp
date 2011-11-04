@@ -11,21 +11,22 @@ PROTOBUF_GENERATE(PROTOFILES "${CMAKE_CURRENT_SOURCE_DIR}/rsbtimesync/SyncMap.pr
 INCLUDE_DIRECTORIES(BEFORE "${CMAKE_CURRENT_BINARY_DIR}/rsbtimesync")
 
 SET(RSBTS_SOURCES rsbtimesync/ApproximateTimeStrategy.cpp
+                  rsbtimesync/EventsByScopeMapConverter.cpp
                   rsbtimesync/FirstMatchStrategy.cpp
                   rsbtimesync/InformerHandler.cpp
                   rsbtimesync/SchemaAndByteArrayConverter.cpp
                   rsbtimesync/SyncDataHandler.cpp
-                  rsbtimesync/SyncMapConverter.cpp
                   rsbtimesync/SyncStrategy.cpp
                   rsbtimesync/TimeFrameStrategy.cpp
                   ${PROTO_SOURCES})
 
 SET(RSBTS_HEADERS rsbtimesync/ApproximateTimeStrategy.h
+                  rsbtimesync/EventCollections.h
+                  rsbtimesync/EventsByScopeMapConverter.h
                   rsbtimesync/FirstMatchStrategy.h
                   rsbtimesync/InformerHandler.h
                   rsbtimesync/SchemaAndByteArrayConverter.h
                   rsbtimesync/SyncDataHandler.h
-                  rsbtimesync/SyncMapConverter.h
                   rsbtimesync/SyncStrategy.h
                   rsbtimesync/TimeFrameStrategy.h
                   ${PROTO_HEADERS})

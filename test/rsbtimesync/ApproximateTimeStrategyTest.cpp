@@ -24,7 +24,8 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
-#include "rsbtimesync/ApproximateTimeStrategy.cpp"
+#include "rsbtimesync/ApproximateTimeStrategy.h"
+#include "rsbtimesync/EventCollections.h"
 
 using namespace std;
 using namespace testing;
@@ -109,9 +110,9 @@ TEST_F(ApproximateTimeStrategyTest, testEqualFrequencyAndTiming) {
     for (unsigned int sequenceNumber = 0;
             sequenceNumber < handler->getEvents().size(); ++sequenceNumber) {
 
-        boost::shared_ptr<SyncMapConverter::DataMap> data =
-                boost::static_pointer_cast<SyncMapConverter::DataMap>(
-                        handler->getEvents()[sequenceNumber]->getData());
+        boost::shared_ptr<EventsByScopeMap> data = boost::static_pointer_cast<
+                EventsByScopeMap>(
+                handler->getEvents()[sequenceNumber]->getData());
 
         EXPECT_EQ(size_t(3), data->size());
         for (set<Scope>::const_iterator scopeIt = scopes.begin();
@@ -178,9 +179,8 @@ TEST_F(ApproximateTimeStrategyTest, testOneDoubleFrequency) {
 
     for (unsigned int i = 0; i < handler->getEvents().size(); ++i) {
 
-        boost::shared_ptr<SyncMapConverter::DataMap> data =
-                boost::static_pointer_cast<SyncMapConverter::DataMap>(
-                        handler->getEvents()[i]->getData());
+        boost::shared_ptr<EventsByScopeMap> data = boost::static_pointer_cast<
+                EventsByScopeMap>(handler->getEvents()[i]->getData());
 
         EXPECT_EQ(size_t(3), data->size());
         for (set<Scope>::const_iterator scopeIt = scopes.begin();
@@ -254,9 +254,8 @@ TEST_F(ApproximateTimeStrategyTest, testDropping) {
     EXPECT_FALSE(handler->getEvents().empty());
     EXPECT_EQ(size_t(1), handler->getEvents().size());
 
-    boost::shared_ptr<SyncMapConverter::DataMap> data =
-            boost::static_pointer_cast<SyncMapConverter::DataMap>(
-                    handler->getEvents().front()->getData());
+    boost::shared_ptr<EventsByScopeMap> data = boost::static_pointer_cast<
+            EventsByScopeMap>(handler->getEvents().front()->getData());
     EXPECT_EQ(size_t(3), data->size());
     for (set<Scope>::const_iterator scopeIt = scopes.begin();
             scopeIt != scopes.end(); ++scopeIt) {

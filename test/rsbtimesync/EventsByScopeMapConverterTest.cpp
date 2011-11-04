@@ -27,7 +27,8 @@
 #include <rsb/EventId.h>
 #include <rsb/MetaData.h>
 
-#include "rsbtimesync/SyncMapConverter.h"
+#include "rsbtimesync/EventCollections.h"
+#include "rsbtimesync/EventsByScopeMapConverter.h"
 
 using namespace std;
 using namespace testing;
@@ -68,10 +69,9 @@ EventPtr createRandomEvent(const Scope &scope) {
 
 }
 
-TEST(SyncMapConverterTest, testRoundtrip) {
+TEST(EventsByScopeMapConverterTest, testRoundtrip) {
 
-    boost::shared_ptr<SyncMapConverter::DataMap> message(
-            new SyncMapConverter::DataMap);
+    boost::shared_ptr<EventsByScopeMap> message(new EventsByScopeMap);
     const unsigned int numScopes = 5;
     for (unsigned int scopeNum = 0; scopeNum < numScopes; ++scopeNum) {
 
@@ -88,19 +88,19 @@ TEST(SyncMapConverterTest, testRoundtrip) {
         }
     }
 
-    SyncMapConverter converter;
+    EventsByScopeMapConverter converter;
     string wire;
     string wireSchema = converter.serialize(
-            make_pair(rsc::runtime::typeName<SyncMapConverter::DataMap>(),
-                    message), wire);
+            make_pair(rsc::runtime::typeName<EventsByScopeMap>(), message),
+            wire);
     converter::AnnotatedData data = converter.deserialize(wireSchema, wire);
 
-    boost::shared_ptr<SyncMapConverter::DataMap> convertedData =
-            boost::static_pointer_cast<SyncMapConverter::DataMap>(data.second);
+    boost::shared_ptr<EventsByScopeMap> convertedData =
+            boost::static_pointer_cast<EventsByScopeMap>(data.second);
 
     ASSERT_EQ(message->size(), convertedData->size());
 
-    for (SyncMapConverter::DataMap::iterator originalScopeIt = message->begin();
+    for (EventsByScopeMap::iterator originalScopeIt = message->begin();
             originalScopeIt != message->end(); ++originalScopeIt) {
 
         Scope scope = originalScopeIt->first;

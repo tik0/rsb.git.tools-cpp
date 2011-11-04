@@ -35,10 +35,8 @@ namespace rsbtimesync {
  *
  * @author jwienke
  */
-class SyncMapConverter: public rsb::converter::Converter<std::string> {
+class EventsByScopeMapConverter: public rsb::converter::Converter<std::string> {
 public:
-
-    typedef std::map<rsb::Scope, std::vector<rsb::EventPtr> > DataMap;
 
     /**
      * Constructs a new converter and optionally allows to specify a
@@ -52,12 +50,12 @@ public:
      *                                  Defaults to the unambiguous map from
      *                                  #stringConverterRepository
      */
-    SyncMapConverter(
+    EventsByScopeMapConverter(
             rsb::converter::ConverterSelectionStrategy<std::string>::Ptr serializationConverters =
                     rsb::converter::stringConverterRepository()->getConvertersForSerialization(),
             rsb::converter::ConverterSelectionStrategy<std::string>::Ptr deserializationConverters =
                     rsb::converter::stringConverterRepository()->getConvertersForDeserialization());
-    virtual ~SyncMapConverter();
+    virtual ~EventsByScopeMapConverter();
 
     std::string getClassName() const;
 

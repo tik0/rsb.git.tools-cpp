@@ -27,6 +27,8 @@
 #include <rsb/MetaData.h>
 #include <rsb/EventId.h>
 
+#include "EventCollections.h"
+
 using namespace std;
 using namespace rsc;
 using namespace rsb;
@@ -50,8 +52,8 @@ public:
         rsb::EventPtr resultEvent = handler->createEvent();
 
         // prepare message with primary event
-        boost::shared_ptr<SyncMapConverter::DataMap> message(
-                new SyncMapConverter::DataMap);
+        boost::shared_ptr<EventsByScopeMap> message(
+                new EventsByScopeMap);
         (*message)[primaryEvent->getScope()].push_back(primaryEvent);
         resultEvent->addCause(primaryEvent->getEventId());
 

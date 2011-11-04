@@ -17,7 +17,7 @@
  *
  * ============================================================ */
 
-#include "SyncMapConverter.h"
+#include "EventsByScopeMapConverter.h"
 
 #include <map>
 #include <vector>
@@ -31,32 +31,34 @@
 
 #include "SyncMap.pb.h"
 
+#include "EventCollections.h"
+
 using namespace std;
 
 namespace rsbtimesync {
 
-SyncMapConverter::SyncMapConverter(
+EventsByScopeMapConverter::EventsByScopeMapConverter(
         rsb::converter::ConverterSelectionStrategy<std::string>::Ptr serializationConverters,
         rsb::converter::ConverterSelectionStrategy<std::string>::Ptr deserializationConverters) :
-        rsb::converter::Converter<string>("dummy", RSB_TYPE_TAG(DataMap)), serializationConverters(
+        rsb::converter::Converter<string>("dummy", RSB_TYPE_TAG(EventsByScopeMap)), serializationConverters(
                 serializationConverters), deserializationConverters(
                 deserializationConverters), converter(
                 new rsb::converter::ProtocolBufferConverter<SyncMap>) {
 
 }
 
-SyncMapConverter::~SyncMapConverter() {
+EventsByScopeMapConverter::~EventsByScopeMapConverter() {
 }
 
-string SyncMapConverter::getWireSchema() const {
+string EventsByScopeMapConverter::getWireSchema() const {
     return converter->getWireSchema();
 }
 
-string SyncMapConverter::getClassName() const {
-    return "SyncMapConverter";
+string EventsByScopeMapConverter::getClassName() const {
+    return "EventsByScopeMapConverter";
 }
 
-string SyncMapConverter::serialize(const rsb::converter::AnnotatedData &data,
+string EventsByScopeMapConverter::serialize(const rsb::converter::AnnotatedData &data,
         string &wire) {
 
     if (data.first != getDataType()) {
@@ -64,13 +66,13 @@ string SyncMapConverter::serialize(const rsb::converter::AnnotatedData &data,
                 "Called with unsupported data type " + data.first);
     }
 
-    boost::shared_ptr<DataMap> dataMap = boost::static_pointer_cast<DataMap>(
+    boost::shared_ptr<EventsByScopeMap> dataMap = boost::static_pointer_cast<EventsByScopeMap>(
             data.second);
 
     boost::shared_ptr<SyncMap> syncMap(new SyncMap);
 
     // iterate over all scopes
-    for (DataMap::const_iterator mapIt = dataMap->begin();
+    for (EventsByScopeMap::const_iterator mapIt = dataMap->begin();
             mapIt != dataMap->end(); ++mapIt) {
 
         SyncMap::ScopeSet *scopeSet = syncMap->add_sets();
@@ -106,7 +108,7 @@ string SyncMapConverter::serialize(const rsb::converter::AnnotatedData &data,
 
 }
 
-rsb::converter::AnnotatedData SyncMapConverter::deserialize(
+rsb::converter::AnnotatedData EventsByScopeMapConverter::deserialize(
         const string &wireSchema, const string &wire) {
 
     if (wireSchema != getWireSchema()) {
@@ -117,7 +119,7 @@ rsb::converter::AnnotatedData SyncMapConverter::deserialize(
     SyncMap syncMap;
     syncMap.ParseFromString(wire);
 
-    boost::shared_ptr<DataMap> dataMap(new DataMap);
+    boost::shared_ptr<EventsByScopeMap> dataMap(new EventsByScopeMap);
 
     // iterate over all scope sets
     for (unsigned int setCount = 0; setCount < syncMap.sets_size();

@@ -26,6 +26,8 @@
 #include <rsb/EventId.h>
 #include <rsb/MetaData.h>
 
+#include "EventCollections.h"
+
 using namespace std;
 using namespace rsb;
 
@@ -240,8 +242,8 @@ void ApproximateTimeStrategy::publishCandidate() {
     rsb::EventPtr resultEvent = handler->createEvent();
 
     // prepare message with primary event
-    boost::shared_ptr<SyncMapConverter::DataMap> message(
-            new SyncMapConverter::DataMap);
+    boost::shared_ptr<EventsByScopeMap> message(
+            new EventsByScopeMap);
 
     for (map<Scope, EventPtr>::const_iterator eventIt =
             currentCandidate->getEvents().begin();
