@@ -22,6 +22,8 @@
 
 #include <rsc/logging/LoggerFactory.h>
 
+#include <rsb/converter/converters.h>
+
 #include "../testhelpers.h"
 
 using namespace testing;
@@ -46,6 +48,7 @@ int main(int argc, char* argv[]) {
 
     srand(time(NULL));
     setupLogging();
+    rsb::converter::registerDefaultConverters();
 
     //::testing::AddGlobalTestEnvironment(new SpreadEnvironment);
     InitGoogleMock(&argc, argv);

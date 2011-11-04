@@ -35,18 +35,16 @@ using namespace std;
 namespace rsbtimesync {
 
 SyncMapConverter::SyncMapConverter(
-        rsb::converter::Repository<std::string>::Ptr converterRepository) :
-        rsb::converter::Converter<string>("dummy", "dummy", true), converterRepository(
-                converterRepository), converter(
+        rsb::converter::ConverterSelectionStrategy<std::string>::Ptr serializationConverters,
+        rsb::converter::ConverterSelectionStrategy<std::string>::Ptr deserializationConverters) :
+        rsb::converter::Converter<string>("dummy", RSB_TYPE_TAG(DataMap)), serializationConverters(
+                serializationConverters), deserializationConverters(
+                deserializationConverters), converter(
                 new rsb::converter::ProtocolBufferConverter<SyncMap>) {
 
 }
 
 SyncMapConverter::~SyncMapConverter() {
-}
-
-string SyncMapConverter::getDataType() const {
-    return converter->getDataType();
 }
 
 string SyncMapConverter::getWireSchema() const {
@@ -70,37 +68,37 @@ string SyncMapConverter::serialize(const rsb::converter::AnnotatedData &data,
 
     boost::shared_ptr<SyncMap> syncMap(new SyncMap);
 
+    // iterate over all scopes
     for (DataMap::const_iterator mapIt = dataMap->begin();
             mapIt != dataMap->end(); ++mapIt) {
 
         SyncMap::ScopeSet *scopeSet = syncMap->add_sets();
         scopeSet->set_scope(mapIt->first.toString());
 
-        cout << "Processing scope " << mapIt->first << endl;
-
+        // iterate over all events in one scope
         for (vector<rsb::EventPtr>::const_iterator eventIt =
                 mapIt->second.begin(); eventIt != mapIt->second.end();
                 ++eventIt) {
 
+            // convert event to notification
             rsb::EventPtr event = *eventIt;
-            cout << "  processing event " << event << endl;
-            boost::shared_ptr<pair<string, boost::shared_ptr<string> > > annotatedData =
-                    boost::static_pointer_cast<
-                            pair<string, boost::shared_ptr<string> > >(
-                            event->getData());
+
+            Converter<string>::Ptr c = serializationConverters->getConverter(
+                    event->getType());
+            string wire;
+            string wireSchema = c->serialize(
+                    make_pair(event->getType(), event->getData()), wire);
 
             rsb::protocol::Notification *notification =
                     scopeSet->add_notifications();
             rsb::protocol::fillNotificationId(*notification, event);
             rsb::protocol::fillNotificationHeader(*notification, event,
-                    annotatedData->first);
-            notification->set_data(*(annotatedData->second));
+                    wireSchema);
+            notification->set_data(wire);
 
         }
 
     }
-
-    cout << "build SyncMap: " << syncMap->DebugString() << endl;
 
     return converter->serialize(
             make_pair(rsc::runtime::typeName<SyncMap>(), syncMap), wire);
@@ -136,7 +134,7 @@ rsb::converter::AnnotatedData SyncMapConverter::deserialize(
             rsb::EventPtr event(new rsb::Event);
             event->setScopePtr(scope);
             rsb::converter::AnnotatedData annotatedData =
-                    converterRepository->getConvertersForDeserialization()->getConverter(
+                    deserializationConverters->getConverter(
                             notification.wire_schema())->deserialize(
                             notification.wire_schema(), notification.data());
             event->setType(annotatedData.first);

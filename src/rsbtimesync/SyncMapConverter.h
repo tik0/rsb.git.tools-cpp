@@ -45,12 +45,18 @@ public:
      * converter::Repository which will be used for the contained events of
      * arbitrary types.
      *
-     * @param converterRepository the repository to use. If not specified, the
-     *                            default #stringConverterRepository is used.
+     * @param serializationConverters converters to use for serialization.
+     *                                Defaults to the unambiguous map from
+     *                                #stringConverterRepository
+     * @param deserializationConverters converters to use for deserialization.
+     *                                  Defaults to the unambiguous map from
+     *                                  #stringConverterRepository
      */
     SyncMapConverter(
-            rsb::converter::Repository<std::string>::Ptr converterRepository =
-                    rsb::converter::stringConverterRepository());
+            rsb::converter::ConverterSelectionStrategy<std::string>::Ptr serializationConverters =
+                    rsb::converter::stringConverterRepository()->getConvertersForSerialization(),
+            rsb::converter::ConverterSelectionStrategy<std::string>::Ptr deserializationConverters =
+                    rsb::converter::stringConverterRepository()->getConvertersForDeserialization());
     virtual ~SyncMapConverter();
 
     std::string getClassName() const;
@@ -61,12 +67,11 @@ public:
     rsb::converter::AnnotatedData deserialize(const std::string &wireSchema,
             const std::string &wire);
 
-    std::string getDataType() const;
-
     std::string getWireSchema() const;
 
 private:
-    rsb::converter::Repository<std::string>::Ptr converterRepository;
+    rsb::converter::ConverterSelectionStrategy<std::string>::Ptr serializationConverters;
+    rsb::converter::ConverterSelectionStrategy<std::string>::Ptr deserializationConverters;
     rsb::converter::Converter<std::string>::Ptr converter;
 
 };
