@@ -24,6 +24,7 @@
 
 #include <rsb/Event.h>
 #include <rsb/Scope.h>
+#include <rsb/converter/Converter.h>
 #include <rsb/converter/SerializationException.h>
 #include <rsb/protocol/Notification.h>
 #include <rsb/converter/ProtocolBufferConverter.h>
@@ -83,7 +84,7 @@ string SyncMapConverter::serialize(const rsb::converter::AnnotatedData &data,
             // convert event to notification
             rsb::EventPtr event = *eventIt;
 
-            Converter<string>::Ptr c = serializationConverters->getConverter(
+            rsb::converter::Converter<string>::Ptr c = serializationConverters->getConverter(
                     event->getType());
             string wire;
             string wireSchema = c->serialize(
@@ -118,16 +119,19 @@ rsb::converter::AnnotatedData SyncMapConverter::deserialize(
 
     boost::shared_ptr<DataMap> dataMap(new DataMap);
 
+    // iterate over all scope sets
     for (unsigned int setCount = 0; setCount < syncMap.sets_size();
             ++setCount) {
 
         const SyncMap::ScopeSet &scopeSet = syncMap.sets(setCount);
         rsb::ScopePtr scope(new rsb::Scope(scopeSet.scope()));
 
+        // iterate over all notifications in each scope set
         for (unsigned int notificationIndex = 0;
                 notificationIndex < scopeSet.notifications_size();
                 ++notificationIndex) {
 
+            // convert the notification back to an event
             const rsb::protocol::Notification &notification =
                     scopeSet.notifications(notificationIndex);
 
