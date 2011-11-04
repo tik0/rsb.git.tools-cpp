@@ -24,8 +24,9 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
+#include <rsb/EventCollections.h>
+
 #include "rsbtimesync/ApproximateTimeStrategy.h"
-#include "rsbtimesync/EventCollections.h"
 
 using namespace std;
 using namespace testing;

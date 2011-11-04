@@ -24,6 +24,8 @@
 
 #include <boost/thread/mutex.hpp>
 
+#include <rsc/logging/Logger.h>
+
 #include "SyncStrategy.h"
 
 namespace rsbtimesync {

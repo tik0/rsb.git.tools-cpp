@@ -27,7 +27,7 @@
 #include <rsb/MetaData.h>
 #include <rsb/EventId.h>
 
-#include "EventCollections.h"
+#include <rsb/EventCollections.h>
 
 using namespace std;
 using namespace rsc;

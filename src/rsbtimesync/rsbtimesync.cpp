@@ -32,7 +32,9 @@
 #include <rsb/Scope.h>
 #include <rsb/converter/Converter.h>
 #include <rsb/converter/ConverterSelectionStrategy.h>
+#include <rsb/converter/EventsByScopeMapConverter.h>
 #include <rsb/converter/PredicateConverterList.h>
+#include <rsb/converter/SchemaAndByteArrayConverter.h>
 
 #include <rsc/logging/Logger.h>
 #include <rsc/logging/LoggerFactory.h>
@@ -40,15 +42,15 @@
 #include <rsc/threading/SynchronizedQueue.h>
 
 #include "ApproximateTimeStrategy.h"
-#include "EventCollections.h"
+#include <rsb/EventCollections.h>
 #include "FirstMatchStrategy.h"
 #include "InformerHandler.h"
-#include "SchemaAndByteArrayConverter.h"
-#include "EventsByScopeMapConverter.h"
 #include "SyncStrategy.h"
 #include "TimeFrameStrategy.h"
 
 using namespace std;
+using namespace rsb;
+using namespace rsb::converter;
 using namespace rsbtimesync;
 namespace po = boost::program_options;
 
@@ -60,11 +62,11 @@ const char *OPTION_STRATEGY = "strategy";
 
 rsc::logging::LoggerPtr logger = rsc::logging::Logger::getLogger("rsbtimesync");
 
-rsb::Scope outScope;
-rsb::Scope primaryScope;
-set<rsb::Scope> supplementaryScopes;
+Scope outScope;
+Scope primaryScope;
+set<Scope> supplementaryScopes;
 
-rsb::converter::ConverterSelectionStrategy<string>::Ptr noConversionSelectionStrategy;
+ConverterSelectionStrategy<string>::Ptr noConversionSelectionStrategy;
 
 map<string, SyncStrategyPtr> strategiesByName;
 SyncStrategyPtr strategy;
@@ -135,7 +137,7 @@ bool parseOptions(int argc, char **argv) {
 
     // out scope
     if (vm.count(OPTION_OUT_SCOPE)) {
-        outScope = rsb::Scope(vm[OPTION_OUT_SCOPE].as<string>());
+        outScope = Scope(vm[OPTION_OUT_SCOPE].as<string>());
     } else {
         cerr << "No out scope defined." << endl;
         return false;
@@ -143,7 +145,7 @@ bool parseOptions(int argc, char **argv) {
 
     // primary scope
     if (vm.count(OPTION_PRIMARY_SCOPE)) {
-        primaryScope = rsb::Scope(vm[OPTION_PRIMARY_SCOPE].as<string>());
+        primaryScope = Scope(vm[OPTION_PRIMARY_SCOPE].as<string>());
     } else {
         cerr << "No primary scope defined." << endl;
         return false;
@@ -155,7 +157,7 @@ bool parseOptions(int argc, char **argv) {
                 vector<string> >();
         for (vector<string>::const_iterator it = scopeStrings.begin();
                 it != scopeStrings.end(); ++it) {
-            supplementaryScopes.insert(rsb::Scope(*it));
+            supplementaryScopes.insert(Scope(*it));
         }
     } else {
         cerr << "No supplementary scopes defined." << endl;
@@ -195,52 +197,45 @@ bool parseOptions(int argc, char **argv) {
 void configureConversion() {
 
     // set up converters
-    list<
-            pair<rsb::converter::ConverterPredicatePtr,
-                    rsb::converter::Converter<string>::Ptr> > converters;
+    list<pair<ConverterPredicatePtr, Converter<string>::Ptr> > converters;
     converters.push_back(
-            make_pair(
-                    rsb::converter::ConverterPredicatePtr(
-                            new rsb::converter::AlwaysApplicable()),
-                    rsb::converter::Converter<string>::Ptr(
-                            new SchemaAndByteArrayConverter())));
+            make_pair(ConverterPredicatePtr(new AlwaysApplicable()),
+                    Converter<string>::Ptr(new SchemaAndByteArrayConverter())));
     noConversionSelectionStrategy.reset(
-            new rsb::converter::PredicateConverterList<string>(
-                    converters.begin(), converters.end()));
+            new PredicateConverterList<string>(converters.begin(),
+                    converters.end()));
     // adapt default participant configuration
-    rsb::ParticipantConfig config =
-            rsb::Factory::getInstance().getDefaultParticipantConfig();
-    rsb::ParticipantConfig::Transport transport = config.getTransport("spread");
+    ParticipantConfig config =
+            Factory::getInstance().getDefaultParticipantConfig();
+    ParticipantConfig::Transport transport = config.getTransport("spread");
     rsc::runtime::Properties options = transport.getOptions();
     options["converters"] = noConversionSelectionStrategy;
     transport.setOptions(options);
     config.addTransport(transport);
-    rsb::Factory::getInstance().setDefaultParticipantConfig(config);
+    Factory::getInstance().setDefaultParticipantConfig(config);
 
 }
 
-rsb::ParticipantConfig createInformerConfig() {
+ParticipantConfig createInformerConfig() {
 
-    list<
-            pair<rsb::converter::ConverterPredicatePtr,
-                    rsb::converter::Converter<string>::Ptr> > converters;
+    list<pair<ConverterPredicatePtr, Converter<string>::Ptr> > converters;
     converters.push_back(
             make_pair(
-                    rsb::converter::ConverterPredicatePtr(
-                            new rsb::converter::AlwaysApplicable()),
-                    rsb::converter::Converter<string>::Ptr(
-                            new EventsByScopeMapConverter(noConversionSelectionStrategy,
+                    ConverterPredicatePtr(new AlwaysApplicable()),
+                    Converter<string>::Ptr(
+                            new EventsByScopeMapConverter(
+                                    noConversionSelectionStrategy,
                                     noConversionSelectionStrategy))));
-    rsb::converter::ConverterSelectionStrategy<string>::Ptr selectionStrategy(
-            new rsb::converter::PredicateConverterList<string>(
-                    converters.begin(), converters.end()));
+    ConverterSelectionStrategy<string>::Ptr selectionStrategy(
+            new PredicateConverterList<string>(converters.begin(),
+                    converters.end()));
     // adapt default participant configuration
-    rsb::ParticipantConfig config =
-            rsb::Factory::getInstance().getDefaultParticipantConfig();
+    ParticipantConfig config =
+            Factory::getInstance().getDefaultParticipantConfig();
     config.setQualityOfServiceSpec(
-            rsb::QualityOfServiceSpec(rsb::QualityOfServiceSpec::ORDERED,
-                    rsb::QualityOfServiceSpec::RELIABLE));
-    rsb::ParticipantConfig::Transport transport = config.getTransport("spread");
+            QualityOfServiceSpec(QualityOfServiceSpec::ORDERED,
+                    QualityOfServiceSpec::RELIABLE));
+    ParticipantConfig::Transport transport = config.getTransport("spread");
     rsc::runtime::Properties options = transport.getOptions();
     options["converters"] = selectionStrategy;
     transport.setOptions(options);
@@ -252,25 +247,25 @@ rsb::ParticipantConfig createInformerConfig() {
 class InformingSyncDataHandler: public SyncDataHandler {
 public:
 
-    InformingSyncDataHandler(rsb::InformerBasePtr informer) :
+    InformingSyncDataHandler(InformerBasePtr informer) :
             informer(informer) {
     }
 
     virtual ~InformingSyncDataHandler() {
     }
 
-    rsb::EventPtr createEvent() {
-        rsb::EventPtr event = informer->createEvent();
+    EventPtr createEvent() {
+        EventPtr event = informer->createEvent();
         event->setType(rsc::runtime::typeName<EventsByScopeMap>());
         return event;
     }
 
-    void handle(rsb::EventPtr event) {
+    void handle(EventPtr event) {
         informer->publish(event);
     }
 
 private:
-    rsb::InformerBasePtr informer;
+    InformerBasePtr informer;
 
 };
 
@@ -291,25 +286,25 @@ int main(int argc, char **argv) {
 
     configureConversion();
 
-    rsb::Informer<EventsByScopeMap>::Ptr informer =
-            rsb::Factory::getInstance().createInformer<EventsByScopeMap>(
-                    outScope, createInformerConfig());
+    Informer<EventsByScopeMap>::Ptr informer =
+            Factory::getInstance().createInformer<EventsByScopeMap>(outScope,
+                    createInformerConfig());
     SyncDataHandlerPtr handler(new InformingSyncDataHandler(informer));
 
     // configure selected sync strategy
     strategy->initializeChannels(primaryScope, supplementaryScopes);
     strategy->setSyncDataHandler(handler);
 
-    rsb::ListenerPtr primaryListener =
-            rsb::Factory::getInstance().createListener(primaryScope);
+    ListenerPtr primaryListener = Factory::getInstance().createListener(
+            primaryScope);
     primaryListener->addHandler(strategy);
 
-    map<rsb::Scope, rsb::ListenerPtr> supplementaryListeners;
-    for (set<rsb::Scope>::const_iterator scopeIt = supplementaryScopes.begin();
+    map<Scope, ListenerPtr> supplementaryListeners;
+    for (set<Scope>::const_iterator scopeIt = supplementaryScopes.begin();
             scopeIt != supplementaryScopes.end(); ++scopeIt) {
 
         supplementaryListeners[*scopeIt] =
-                rsb::Factory::getInstance().createListener(*scopeIt);
+                Factory::getInstance().createListener(*scopeIt);
         supplementaryListeners[*scopeIt]->addHandler(strategy);
 
     }

@@ -21,9 +21,10 @@
 
 #include <rsb/EventId.h>
 
-#include "EventCollections.h"
+#include <rsb/EventCollections.h>
 
 using namespace std;
+using namespace rsb;
 
 namespace rsbtimesync {
 
@@ -45,16 +46,16 @@ void FirstMatchStrategy::setSyncDataHandler(SyncDataHandlerPtr handler) {
     this->handler = handler;
 }
 
-void FirstMatchStrategy::initializeChannels(const rsb::Scope &primaryScope,
-        const set<rsb::Scope> &subsidiaryScopes) {
+void FirstMatchStrategy::initializeChannels(const Scope &primaryScope,
+        const set<Scope> &subsidiaryScopes) {
     this->primaryScope = primaryScope;
-    for (set<rsb::Scope>::const_iterator scopeIt = subsidiaryScopes.begin();
+    for (set<Scope>::const_iterator scopeIt = subsidiaryScopes.begin();
             scopeIt != subsidiaryScopes.end(); ++scopeIt) {
         supplementaryEvents[*scopeIt].reset();
     }
 }
 
-void FirstMatchStrategy::handle(rsb::EventPtr event) {
+void FirstMatchStrategy::handle(EventPtr event) {
 
     boost::recursive_mutex::scoped_lock lock(mutex);
 
@@ -70,7 +71,7 @@ void FirstMatchStrategy::handle(rsb::EventPtr event) {
     if (!event) {
         return;
     }
-    for (std::map<rsb::Scope, rsb::EventPtr>::const_iterator it =
+    for (std::map<Scope, EventPtr>::const_iterator it =
             supplementaryEvents.begin(); it != supplementaryEvents.end();
             ++it) {
         if (!it->second) {
@@ -78,17 +79,15 @@ void FirstMatchStrategy::handle(rsb::EventPtr event) {
         }
     }
 
-    rsb::EventPtr resultEvent = handler->createEvent();
+    EventPtr resultEvent = handler->createEvent();
 
     // all buffers are filled, we can emit an event
-    boost::shared_ptr<EventsByScopeMap> message(
-            new EventsByScopeMap);
+    boost::shared_ptr<EventsByScopeMap> message(new EventsByScopeMap);
     (*message)[primaryEvent->getScope()].push_back(primaryEvent);
     resultEvent->addCause(primaryEvent->getEventId());
     primaryEvent.reset();
-    for (std::map<rsb::Scope, rsb::EventPtr>::iterator it =
-            supplementaryEvents.begin(); it != supplementaryEvents.end();
-            ++it) {
+    for (std::map<Scope, EventPtr>::iterator it = supplementaryEvents.begin();
+            it != supplementaryEvents.end(); ++it) {
         (*message)[it->second->getScope()].push_back(it->second);
         resultEvent->addCause(it->second->getEventId());
         it->second.reset();

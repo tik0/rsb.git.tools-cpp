@@ -21,8 +21,6 @@
 
 #include <rsb/eventprocessing/Handler.h>
 
-#include "EventsByScopeMapConverter.h"
-
 namespace rsbtimesync {
 
 /**

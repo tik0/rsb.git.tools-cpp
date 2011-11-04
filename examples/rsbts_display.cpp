@@ -27,29 +27,29 @@
 #include <rsc/logging/LoggerFactory.h>
 
 #include <rsb/Event.h>
+#include <rsb/EventCollections.h>
 #include <rsb/EventQueuePushHandler.h>
 #include <rsb/Factory.h>
 #include <rsb/Listener.h>
 #include <rsb/Scope.h>
 #include <rsb/converter/Converter.h>
-
-#include "rsbtimesync/EventCollections.h"
-#include "rsbtimesync/EventsByScopeMapConverter.h"
+#include <rsb/converter/EventsByScopeMapConverter.h>
 
 using namespace std;
 namespace po = boost::program_options;
-using namespace rsbtimesync;
+using namespace rsb;
+using namespace converter;
 
 const char *OPTION_HELP = "help";
 const char *OPTION_SCOPE = "scope";
 
-rsb::Scope scope;
+Scope scope;
 
 rsc::logging::LoggerPtr logger = rsc::logging::Logger::getLogger(
         "rsbtimesync.display");
 
-boost::shared_ptr<rsc::threading::SynchronizedQueue<rsb::EventPtr> > eventQueue(
-        new rsc::threading::SynchronizedQueue<rsb::EventPtr>);
+boost::shared_ptr<rsc::threading::SynchronizedQueue<EventPtr> > eventQueue(
+        new rsc::threading::SynchronizedQueue<EventPtr>);
 
 bool parseOptions(int argc, char **argv) {
 
@@ -77,7 +77,7 @@ bool parseOptions(int argc, char **argv) {
 
     // out scope
     if (vm.count(OPTION_SCOPE)) {
-        scope = rsb::Scope(vm[OPTION_SCOPE].as<string>());
+        scope = Scope(vm[OPTION_SCOPE].as<string>());
     } else {
         cerr << "No scope defined." << endl;
         return false;
@@ -99,18 +99,15 @@ int main(int argc, char **argv) {
     }
 
     // register converter
-    rsb::converter::stringConverterRepository()->registerConverter(
-            rsb::converter::Converter<string>::Ptr(
-                    new EventsByScopeMapConverter));
+    stringConverterRepository()->registerConverter(
+            Converter<string>::Ptr(new EventsByScopeMapConverter));
 
-    rsb::ListenerPtr listener = rsb::Factory::getInstance().createListener(
-            scope);
-    listener->addHandler(
-            rsb::HandlerPtr(new rsb::EventQueuePushHandler(eventQueue)));
+    ListenerPtr listener = Factory::getInstance().createListener(scope);
+    listener->addHandler(HandlerPtr(new EventQueuePushHandler(eventQueue)));
 
     while (true) {
 
-        rsb::EventPtr event = eventQueue->pop();
+        EventPtr event = eventQueue->pop();
 
         cout << "received event: " << event << endl;
 
@@ -122,7 +119,7 @@ int main(int argc, char **argv) {
 
             cout << "Scope: " << mapIt->first.toString() << ":" << endl;
 
-            for (vector<rsb::EventPtr>::const_iterator eventIt =
+            for (vector<EventPtr>::const_iterator eventIt =
                     mapIt->second.begin(); eventIt != mapIt->second.end();
                     ++eventIt) {
                 cout << "\t" << *eventIt << endl;

@@ -1,35 +1,19 @@
 
 INCLUDE(InstallFilesRecursive)
 
-PROTOBUF_GENERATE(PROTOFILES "${CMAKE_CURRENT_SOURCE_DIR}/rsbtimesync/EventsByScopeMap.proto"
-                  PROTOROOT "${CMAKE_CURRENT_SOURCE_DIR}/rsbtimesync"
-                  OUTPATH "${CMAKE_CURRENT_BINARY_DIR}/rsbtimesync"
-                  INCLUDES ${RSBPROTO_ROOT}
-                  CPP
-                  PROTO_SOURCES PROTO_HEADERS)
-
-INCLUDE_DIRECTORIES(BEFORE "${CMAKE_CURRENT_BINARY_DIR}/rsbtimesync")
-
 SET(RSBTS_SOURCES rsbtimesync/ApproximateTimeStrategy.cpp
-                  rsbtimesync/EventsByScopeMapConverter.cpp
                   rsbtimesync/FirstMatchStrategy.cpp
                   rsbtimesync/InformerHandler.cpp
-                  rsbtimesync/SchemaAndByteArrayConverter.cpp
                   rsbtimesync/SyncDataHandler.cpp
                   rsbtimesync/SyncStrategy.cpp
-                  rsbtimesync/TimeFrameStrategy.cpp
-                  ${PROTO_SOURCES})
+                  rsbtimesync/TimeFrameStrategy.cpp)
 
 SET(RSBTS_HEADERS rsbtimesync/ApproximateTimeStrategy.h
-                  rsbtimesync/EventCollections.h
-                  rsbtimesync/EventsByScopeMapConverter.h
                   rsbtimesync/FirstMatchStrategy.h
                   rsbtimesync/InformerHandler.h
-                  rsbtimesync/SchemaAndByteArrayConverter.h
                   rsbtimesync/SyncDataHandler.h
                   rsbtimesync/SyncStrategy.h
-                  rsbtimesync/TimeFrameStrategy.h
-                  ${PROTO_HEADERS})
+                  rsbtimesync/TimeFrameStrategy.h)
 
 ADD_LIBRARY(${LIBRARY_NAME} SHARED ${RSBTS_SOURCES} ${RSBTS_HEADERS})
 TARGET_LINK_LIBRARIES(${LIBRARY_NAME} ${RSB_LIBRARIES}
