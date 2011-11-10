@@ -143,6 +143,7 @@ StatisticsEventFormatter::StatisticsEventFormatter(ostream &stream,
     this->quantities.push_back(make_pair("Latency", QuantityPtr(new Latency())));
     this->quantities.push_back(make_pair("Rate",    QuantityPtr(new Rate())));
 
+    this->terminate = false;
     this->thread.reset(new boost::thread(bind(&StatisticsEventFormatter::run, this)));
 }
 
