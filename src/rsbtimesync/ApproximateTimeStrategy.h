@@ -58,6 +58,8 @@ public:
 
     void setQueueSize(const unsigned int &size);
 
+    void setTimestampSelector(TimestampSelectorPtr selector);
+
 private:
 
     class Candidate;
@@ -121,6 +123,7 @@ private:
     rsc::logging::LoggerPtr logger;
 
     SyncDataHandlerPtr handler;
+    TimestampSelectorPtr selector;
 
     unsigned int queueSize;
     typedef std::map<rsb::Scope, std::deque<rsb::EventPtr> > EventQueueMap;

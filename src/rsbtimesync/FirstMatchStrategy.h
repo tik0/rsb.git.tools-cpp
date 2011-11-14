@@ -49,12 +49,15 @@ public:
 
     void handleOptions(const boost::program_options::variables_map &options);
 
+    void setTimestampSelector(TimestampSelectorPtr selector);
+
 private:
     boost::recursive_mutex mutex;
     rsb::EventPtr primaryEvent;
     std::map<rsb::Scope, rsb::EventPtr> supplementaryEvents;
     rsb::Scope primaryScope;
     SyncDataHandlerPtr handler;
+    TimestampSelectorPtr selector;
 
 };
 

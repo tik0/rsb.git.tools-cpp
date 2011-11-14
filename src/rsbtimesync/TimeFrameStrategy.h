@@ -48,6 +48,7 @@ public:
     virtual std::string getKey() const;
 
     virtual void setSyncDataHandler(SyncDataHandlerPtr handler);
+    void setTimestampSelector(TimestampSelectorPtr selector);
 
     virtual void initializeChannels(const rsb::Scope &primaryScope,
             const std::set<rsb::Scope> &subsidiaryScopes);
@@ -74,6 +75,7 @@ private:
     rsc::logging::LoggerPtr logger;
 
     SyncDataHandlerPtr handler;
+    TimestampSelectorPtr selector;
 
     rsb::Scope primaryScope;
     std::set<rsb::Scope> subsidiaryScopes;

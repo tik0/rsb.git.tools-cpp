@@ -24,6 +24,7 @@
 
 #include <stdlib.h>
 
+#include <boost/algorithm/string.hpp>
 #include <boost/program_options.hpp>
 
 #include <rsb/EventQueuePushHandler.h>
@@ -47,6 +48,7 @@
 #include "InformerHandler.h"
 #include "SyncStrategy.h"
 #include "TimeFrameStrategy.h"
+#include "StaticTimestampSelectors.h"
 
 using namespace std;
 using namespace rsb;
@@ -59,6 +61,7 @@ const char *OPTION_OUT_SCOPE = "outscope";
 const char *OPTION_PRIMARY_SCOPE = "primscope";
 const char *OPTION_SUPPLEMENTARY_SCOPE = "supscope";
 const char *OPTION_STRATEGY = "strategy";
+const char *OPTION_TIMESTAMP = "timestamp";
 
 rsc::logging::LoggerPtr logger = rsc::logging::Logger::getLogger("rsbtimesync");
 
@@ -70,6 +73,7 @@ ConverterSelectionStrategy<string>::Ptr noConversionSelectionStrategy;
 
 map<string, SyncStrategyPtr> strategiesByName;
 SyncStrategyPtr strategy;
+TimestampSelectorPtr timestampSelector(new CreateTimestampSelector);
 
 void registerStrategies() {
 
@@ -101,15 +105,30 @@ bool parseOptions(int argc, char **argv) {
     }
     strategiesDescription << " }";
 
+    stringstream timestampsDescription;
+    timestampsDescription
+            << "The timestamps to use for synchronizing. Possible values are "
+            << TimestampSelector::CREATE << ", " << TimestampSelector::SEND
+            << ", " << TimestampSelector::RECEIVE << ", "
+            << TimestampSelector::DELIVER << " and names of user timestamps. ";
+    timestampsDescription
+            << "Multiple timestamps can be specified separated by ',', e.g. 'fooTime,"
+            << TimestampSelector::CREATE << "'. ";
+    timestampsDescription
+            << "This specifies the priority to take timestamps with but allows missing user timestamps with the next item in the list as a fallback. ";
+    timestampsDescription << "Default: " << TimestampSelector::CREATE;
+
     // Declare the supported options.
     po::options_description desc("Allowed options");
     desc.add_options()(OPTION_HELP, "produce help message")(OPTION_OUT_SCOPE,
-            po::value<std::string>(),
-            "output scope for the synchronized results")(OPTION_PRIMARY_SCOPE,
-            po::value<std::string>(), "primary scope for the synchronization")(
-            OPTION_SUPPLEMENTARY_SCOPE, po::value<vector<string> >(),
+            po::value<string>(), "output scope for the synchronized results")(
+            OPTION_PRIMARY_SCOPE, po::value<string>(),
+            "primary scope for the synchronization")(OPTION_SUPPLEMENTARY_SCOPE,
+            po::value<vector<string> >(),
             "supplemental scope for the synchronization")(OPTION_STRATEGY,
-            po::value<std::string>(), strategiesDescription.str().c_str());
+            po::value<string>(), strategiesDescription.str().c_str())(
+            OPTION_TIMESTAMP, po::value<string>(),
+            timestampsDescription.str().c_str());
 
     // also for the strategies
     for (map<string, SyncStrategyPtr>::iterator strategyIt =
@@ -164,6 +183,33 @@ bool parseOptions(int argc, char **argv) {
         return false;
     }
 
+    // timestamp selection
+    if (vm.count(OPTION_TIMESTAMP)) {
+        string nameString = vm[OPTION_TIMESTAMP].as<string>();
+        vector<string> names;
+        boost::algorithm::split(names, nameString,
+                boost::algorithm::is_any_of(","),
+                boost::algorithm::token_compress_on);
+
+        if (names.empty()) {
+            cerr << "No valid timestamps specified." << endl;
+            return false;
+        }
+
+        // simple case with only one name:
+        if (names.size() == 1) {
+
+            // system timestamps
+            if (TimestampSelector::systemNames().count(names.front())) {
+                // TODO continue here!
+            } else {
+
+            }
+
+        }
+
+    }
+
     // finally, select the strategy and process its options
     if (!vm.count(OPTION_STRATEGY)) {
         cerr << "No sync strategy specified." << endl;
@@ -184,7 +230,7 @@ bool parseOptions(int argc, char **argv) {
         return false;
     }
 
-    RSCINFO( logger, "Configured:\n"
+    RSCINFO(logger, "Configured:\n"
     "  " << OPTION_OUT_SCOPE << " = " << outScope << "\n"
     "  " << OPTION_PRIMARY_SCOPE << " = " << primaryScope << "\n"
     "  " << OPTION_SUPPLEMENTARY_SCOPE << " = " << supplementaryScopes << "\n"
@@ -294,6 +340,9 @@ int main(int argc, char **argv) {
     // configure selected sync strategy
     strategy->initializeChannels(primaryScope, supplementaryScopes);
     strategy->setSyncDataHandler(handler);
+    // TODO jwienke: configure this!
+    strategy->setTimestampSelector(
+            TimestampSelectorPtr(new CreateTimestampSelector));
 
     ListenerPtr primaryListener = Factory::getInstance().createListener(
             primaryScope);

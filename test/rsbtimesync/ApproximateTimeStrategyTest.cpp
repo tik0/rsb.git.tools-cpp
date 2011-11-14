@@ -27,6 +27,7 @@
 #include <rsb/EventCollections.h>
 
 #include "rsbtimesync/ApproximateTimeStrategy.h"
+#include "rsbtimesync/StaticTimestampSelectors.h"
 
 using namespace std;
 using namespace testing;
@@ -68,6 +69,8 @@ public:
         strategy.reset(new ApproximateTimeStrategy());
         handler.reset(new StoringSyncDataHandler);
         strategy->setSyncDataHandler(handler);
+        strategy->setTimestampSelector(
+                TimestampSelectorPtr(new CreateTimestampSelector));
         scopes.clear();
         scopes.insert("/aaa");
         scopes.insert("/bbb");

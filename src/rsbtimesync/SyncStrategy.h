@@ -28,6 +28,7 @@
 #include <rsb/Scope.h>
 #include <rsb/Handler.h>
 
+#include "TimestampSelector.h"
 #include "SyncDataHandler.h"
 
 namespace rsbtimesync {
@@ -58,6 +59,8 @@ public:
 
     virtual void initializeChannels(const rsb::Scope &primaryScope,
             const std::set<rsb::Scope> &subsidiaryScopes) = 0;
+
+    virtual void setTimestampSelector(TimestampSelectorPtr selector) = 0;
 
     /**
      * This method is called in order to add new command line options this

@@ -46,6 +46,10 @@ void FirstMatchStrategy::setSyncDataHandler(SyncDataHandlerPtr handler) {
     this->handler = handler;
 }
 
+void FirstMatchStrategy::setTimestampSelector(TimestampSelectorPtr selector) {
+    this->selector = selector;
+}
+
 void FirstMatchStrategy::initializeChannels(const Scope &primaryScope,
         const set<Scope> &subsidiaryScopes) {
     this->primaryScope = primaryScope;

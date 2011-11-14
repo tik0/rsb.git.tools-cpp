@@ -52,8 +52,7 @@ public:
         rsb::EventPtr resultEvent = handler->createEvent();
 
         // prepare message with primary event
-        boost::shared_ptr<EventsByScopeMap> message(
-                new EventsByScopeMap);
+        boost::shared_ptr<EventsByScopeMap> message(new EventsByScopeMap);
         (*message)[primaryEvent->getScope()].push_back(primaryEvent);
         resultEvent->addCause(primaryEvent->getEventId());
 
@@ -119,6 +118,10 @@ void TimeFrameStrategy::setSyncDataHandler(SyncDataHandlerPtr handler) {
     this->handler = handler;
 }
 
+void TimeFrameStrategy::setTimestampSelector(TimestampSelectorPtr selector) {
+    this->selector = selector;
+}
+
 void TimeFrameStrategy::initializeChannels(const Scope &primaryScope,
         const set<Scope> &subsidiaryScopes) {
     this->primaryScope = primaryScope;
@@ -180,9 +183,9 @@ void TimeFrameStrategy::handle(rsb::EventPtr event) {
         // subsidiary events are just pushed into the time-indexed pool.
 
         boost::mutex::scoped_lock lock(subEventMutex);
-        subEventsByTime.insert(
-                pair<boost::uint64_t, rsb::EventPtr>(
-                        event->getMetaData().getCreateTime(), event));
+        boost::uint64_t ts;
+        selector->getTimestamp(event, ts);
+        subEventsByTime.insert(pair<boost::uint64_t, rsb::EventPtr>(ts, event));
         RSCDEBUG(logger, "Buffered subsidiary event " << event);
     }
 }

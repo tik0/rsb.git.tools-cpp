@@ -36,7 +36,8 @@ namespace rsbtimesync {
 class ApproximateTimeStrategy::Candidate: public virtual rsc::runtime::Printable {
 public:
 
-    Candidate() {
+    Candidate(TimestampSelectorPtr selector) :
+            selector(selector) {
     }
 
     string getClassName() const {
@@ -54,8 +55,8 @@ public:
         EventPtr event;
         for (map<Scope, EventPtr>::const_iterator it = events.begin();
                 it != events.end(); ++it) {
-            boost::uint64_t currentTimestamp =
-                    it->second->getMetaData().getCreateTime();
+            boost::uint64_t currentTimestamp = selector->getTimestamp(
+                    it->second);
             if (currentTimestamp < referenceTimestamp) {
                 referenceTimestamp = currentTimestamp;
                 event = it->second;
@@ -73,8 +74,8 @@ public:
         EventPtr event;
         for (map<Scope, EventPtr>::const_iterator it = events.begin();
                 it != events.end(); ++it) {
-            boost::uint64_t currentTimestamp =
-                    it->second->getMetaData().getCreateTime();
+            boost::uint64_t currentTimestamp = selector->getTimestamp(
+                    it->second);
             if (currentTimestamp > referenceTimestamp) {
                 referenceTimestamp = currentTimestamp;
                 event = it->second;
@@ -87,8 +88,10 @@ public:
     }
 
     unsigned int size() {
-        return getYoungestEvent()->getMetaData().getCreateTime()
-                - getOldestEvent()->getMetaData().getCreateTime();
+        boost::uint64_t youngestTime = selector->getTimestamp(
+                getYoungestEvent());
+        boost::uint64_t oldestTime = selector->getTimestamp(getOldestEvent());
+        return youngestTime - oldestTime;
     }
 
     void printContents(ostream &stream) const {
@@ -102,6 +105,7 @@ public:
 private:
 
     map<Scope, EventPtr> events;
+    TimestampSelectorPtr selector;
 
 };
 
@@ -120,6 +124,11 @@ string ApproximateTimeStrategy::getKey() const {
 
 void ApproximateTimeStrategy::setSyncDataHandler(SyncDataHandlerPtr handler) {
     this->handler = handler;
+}
+
+void ApproximateTimeStrategy::setTimestampSelector(
+        TimestampSelectorPtr selector) {
+    this->selector = selector;
 }
 
 void ApproximateTimeStrategy::initializeChannels(const Scope &primaryScope,
@@ -170,7 +179,7 @@ bool ApproximateTimeStrategy::isNoEmptyQueue() const {
 
 ApproximateTimeStrategy::CandidatePtr ApproximateTimeStrategy::makeCandidate() const {
 
-    CandidatePtr candidate(new Candidate);
+    CandidatePtr candidate(new Candidate(selector));
     for (EventQueueMap::const_iterator queueIt = newEventsByScope.begin();
             queueIt != newEventsByScope.end(); ++queueIt) {
         candidate->addEvent(queueIt->second.front());
@@ -242,8 +251,7 @@ void ApproximateTimeStrategy::publishCandidate() {
     rsb::EventPtr resultEvent = handler->createEvent();
 
     // prepare message with primary event
-    boost::shared_ptr<EventsByScopeMap> message(
-            new EventsByScopeMap);
+    boost::shared_ptr<EventsByScopeMap> message(new EventsByScopeMap);
 
     for (map<Scope, EventPtr>::const_iterator eventIt =
             currentCandidate->getEvents().begin();
@@ -348,12 +356,15 @@ void ApproximateTimeStrategy::process() {
 
         // get some timing information which can help to prove that the current
         // candidate is optimal
-        boost::uint64_t youngestInterval =
-                newCandidateYoungest->getMetaData().getCreateTime()
-                        - currentCandidate->getYoungestEvent()->getMetaData().getCreateTime();
-        boost::uint64_t pivotOldInterval =
-                pivot->getMetaData().getCreateTime()
-                        - currentCandidate->getOldestEvent()->getMetaData().getCreateTime();
+        boost::uint64_t newYoungestTime = selector->getTimestamp(
+                newCandidateYoungest);
+        boost::uint64_t currentYoungestTime = selector->getTimestamp(
+                currentCandidate->getYoungestEvent());
+        boost::uint64_t youngestInterval = newYoungestTime
+                - currentYoungestTime;
+        boost::uint64_t pivotTime = selector->getTimestamp(pivot);
+        boost::uint64_t pivotOldInterval = pivotTime
+                - selector->getTimestamp(currentCandidate->getOldestEvent());
         RSCDEBUG(
                 logger,
                 "youngestInterval = " << youngestInterval << ", pivotOldInterval = " << pivotOldInterval);
