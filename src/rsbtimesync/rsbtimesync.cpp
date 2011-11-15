@@ -36,6 +36,7 @@
 #include <rsb/converter/EventsByScopeMapConverter.h>
 #include <rsb/converter/PredicateConverterList.h>
 #include <rsb/converter/SchemaAndByteArrayConverter.h>
+#include <rsb/EventCollections.h>
 
 #include <rsc/logging/Logger.h>
 #include <rsc/logging/LoggerFactory.h>
@@ -43,12 +44,12 @@
 #include <rsc/threading/SynchronizedQueue.h>
 
 #include "ApproximateTimeStrategy.h"
-#include <rsb/EventCollections.h>
 #include "FirstMatchStrategy.h"
 #include "InformerHandler.h"
+#include "PriorityTimestampSelector.h"
+#include "StaticTimestampSelectors.h"
 #include "SyncStrategy.h"
 #include "TimeFrameStrategy.h"
-#include "StaticTimestampSelectors.h"
 
 using namespace std;
 using namespace rsb;
@@ -91,6 +92,23 @@ void registerStrategies() {
     }
 
     RSCINFO(logger, "Registered strategies: " << strategiesByName);
+
+}
+
+TimestampSelectorPtr createSelectorFromName(const string &name) {
+
+    // system timestamps
+    if (name == TimestampSelector::CREATE) {
+        return TimestampSelectorPtr(new CreateTimestampSelector);
+    } else if (name == TimestampSelector::SEND) {
+        return TimestampSelectorPtr(new SendTimestampSelector);
+    } else if (name == TimestampSelector::RECEIVE) {
+        return TimestampSelectorPtr(new ReceiveTimestampSelector);
+    } else if (name == TimestampSelector::DELIVER) {
+        return TimestampSelectorPtr(new DeliverTimestampSelector);
+    } else {
+        return TimestampSelectorPtr(new UserTimestampSelector(name));
+    }
 
 }
 
@@ -196,15 +214,26 @@ bool parseOptions(int argc, char **argv) {
             return false;
         }
 
-        // simple case with only one name:
-        if (names.size() == 1) {
+        // simple case with only one name
+        if (names.size() == 1
+                && TimestampSelector::systemNames().count(names.front()) > 0) {
 
-            // system timestamps
-            if (TimestampSelector::systemNames().count(names.front())) {
-                // TODO continue here!
-            } else {
+            timestampSelector = createSelectorFromName(names.front());
+            // as this will only create system time selectors we do not need to
+            // take care of eventually missing timestamps
 
+        } else {
+            // priority-based
+
+            vector<TimestampSelectorPtr> atomicSelectors;
+            for (vector<string>::const_iterator nameIt = names.begin();
+                    nameIt != names.end(); ++nameIt) {
+                atomicSelectors.push_back(createSelectorFromName(*nameIt));
             }
+            // add default as a fall-back
+            atomicSelectors.push_back(timestampSelector);
+            timestampSelector.reset(
+                    new PriorityTimestampSelector(atomicSelectors));
 
         }
 
@@ -234,7 +263,8 @@ bool parseOptions(int argc, char **argv) {
     "  " << OPTION_OUT_SCOPE << " = " << outScope << "\n"
     "  " << OPTION_PRIMARY_SCOPE << " = " << primaryScope << "\n"
     "  " << OPTION_SUPPLEMENTARY_SCOPE << " = " << supplementaryScopes << "\n"
-    "  " << OPTION_STRATEGY << " = " << strategy->getKey());
+    "  " << OPTION_STRATEGY << " = " << strategy->getKey() << "\n"
+    "  " << OPTION_TIMESTAMP << " = " << timestampSelector);
 
     return true;
 
@@ -318,8 +348,6 @@ private:
 int main(int argc, char **argv) {
 
     rsc::logging::LoggerFactory::getInstance()->reconfigure(
-            rsc::logging::Logger::LEVEL_INFO);
-    rsc::logging::Logger::getLogger("rsbtimesync.TimeFrameStrategy")->setLevel(
             rsc::logging::Logger::LEVEL_TRACE);
 
     registerStrategies();
@@ -340,9 +368,7 @@ int main(int argc, char **argv) {
     // configure selected sync strategy
     strategy->initializeChannels(primaryScope, supplementaryScopes);
     strategy->setSyncDataHandler(handler);
-    // TODO jwienke: configure this!
-    strategy->setTimestampSelector(
-            TimestampSelectorPtr(new CreateTimestampSelector));
+    strategy->setTimestampSelector(timestampSelector);
 
     ListenerPtr primaryListener = Factory::getInstance().createListener(
             primaryScope);

@@ -183,8 +183,7 @@ void TimeFrameStrategy::handle(rsb::EventPtr event) {
         // subsidiary events are just pushed into the time-indexed pool.
 
         boost::mutex::scoped_lock lock(subEventMutex);
-        boost::uint64_t ts;
-        selector->getTimestamp(event, ts);
+        boost::uint64_t ts = selector->getTimestamp(event);
         subEventsByTime.insert(pair<boost::uint64_t, rsb::EventPtr>(ts, event));
         RSCDEBUG(logger, "Buffered subsidiary event " << event);
     }

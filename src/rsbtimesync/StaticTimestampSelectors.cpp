@@ -35,6 +35,10 @@ void CreateTimestampSelector::getTimestamp(const EventPtr &event,
     name = TimestampSelector::CREATE;
 }
 
+string CreateTimestampSelector::getClassName() const {
+    return "CreateTimestampSelector";
+}
+
 SendTimestampSelector::~SendTimestampSelector() {
 }
 
@@ -42,6 +46,10 @@ void SendTimestampSelector::getTimestamp(const EventPtr &event,
         boost::uint64_t &timestamp, string &name) {
     timestamp = event->mutableMetaData().getSendTime();
     name = TimestampSelector::SEND;
+}
+
+string SendTimestampSelector::getClassName() const {
+    return "SendTimestampSelector";
 }
 
 ReceiveTimestampSelector::~ReceiveTimestampSelector() {
@@ -53,6 +61,10 @@ void ReceiveTimestampSelector::getTimestamp(const EventPtr &event,
     name = TimestampSelector::RECEIVE;
 }
 
+string ReceiveTimestampSelector::getClassName() const {
+    return "ReceiveTimestampSelector";
+}
+
 DeliverTimestampSelector::~DeliverTimestampSelector() {
 }
 
@@ -60,6 +72,34 @@ void DeliverTimestampSelector::getTimestamp(const EventPtr &event,
         boost::uint64_t &timestamp, string &name) {
     timestamp = event->mutableMetaData().getDeliverTime();
     name = TimestampSelector::DELIVER;
+}
+
+string DeliverTimestampSelector::getClassName() const {
+    return "DeliverTimestampSelector";
+}
+
+UserTimestampSelector::UserTimestampSelector(const string &name) :
+        name(name) {
+}
+
+UserTimestampSelector::~UserTimestampSelector() {
+}
+
+void UserTimestampSelector::getTimestamp(const EventPtr &event,
+        boost::uint64_t &timestamp, string &name) {
+    if (!event->mutableMetaData().hasUserTime(this->name)) {
+        throw NoSuchTimestampException(this->name);
+    }
+    timestamp = event->mutableMetaData().getUserTime(this->name);
+    name = this->name;
+}
+
+string UserTimestampSelector::getClassName() const {
+    return "UserTimestampSelector";
+}
+
+void UserTimestampSelector::printContents(ostream &stream) const {
+    stream << "name = " << name;
 }
 
 }

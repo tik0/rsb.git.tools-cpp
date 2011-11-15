@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include "TimestampSelector.h"
 
 namespace rsbtimesync {
@@ -32,11 +34,19 @@ namespace rsbtimesync {
  */
 class PriorityTimestampSelector: public rsbtimesync::TimestampSelector {
 public:
-    PriorityTimestampSelector();
+
+    PriorityTimestampSelector(
+            const std::vector<TimestampSelectorPtr> &selectorsByPriority);
     virtual ~PriorityTimestampSelector();
 
     virtual void getTimestamp(const rsb::EventPtr &event,
-                boost::uint64_t &timestamp, std::string &name);
+            boost::uint64_t &timestamp, std::string &name);
+
+    virtual std::string getClassName() const;
+    virtual void printContents(std::ostream &stream) const;
+
+private:
+    std::vector<TimestampSelectorPtr> selectorsByPriority;
 
 };
 

@@ -192,6 +192,7 @@ ApproximateTimeStrategy::CandidatePtr ApproximateTimeStrategy::makeCandidate() c
 void ApproximateTimeStrategy::erase(const Scope &scope) {
 
     RSCTRACE(logger, "Erasing on scope " << scope);
+    assert(!newEventsByScope[scope].empty());
     newEventsByScope[scope].pop_front();
 
 }
@@ -199,6 +200,7 @@ void ApproximateTimeStrategy::erase(const Scope &scope) {
 void ApproximateTimeStrategy::shift(const Scope &scope) {
 
     RSCTRACE(logger, "Shifting on scope " << scope);
+    assert(!newEventsByScope[scope].empty());
     trackBackQueuesByScope[scope].push_back(newEventsByScope[scope].front());
     erase(scope);
 

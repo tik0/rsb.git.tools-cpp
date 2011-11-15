@@ -28,7 +28,10 @@ using namespace rsb;
 
 namespace rsbtimesync {
 
-FirstMatchStrategy::FirstMatchStrategy() {
+FirstMatchStrategy::FirstMatchStrategy() :
+        logger(
+                rsc::logging::Logger::getLogger(
+                        "rsbtimesync.FirstMatchStrategy")) {
 }
 
 FirstMatchStrategy::~FirstMatchStrategy() {
@@ -61,12 +64,16 @@ void FirstMatchStrategy::initializeChannels(const Scope &primaryScope,
 
 void FirstMatchStrategy::handle(EventPtr event) {
 
+    RSCDEBUG(logger, "Received event " << event);
+
     boost::recursive_mutex::scoped_lock lock(mutex);
 
     // insert event into data structure
     if (event->getScopePtr()->operator ==(primaryScope)) {
+        RSCTRACE(logger, "It is a primary event");
         primaryEvent = event;
     } else {
+        RSCTRACE(logger, "It is a supplemental event");
         assert(supplementaryEvents.count(event->getScope()));
         supplementaryEvents[event->getScope()] = event;
     }
@@ -79,6 +86,7 @@ void FirstMatchStrategy::handle(EventPtr event) {
             supplementaryEvents.begin(); it != supplementaryEvents.end();
             ++it) {
         if (!it->second) {
+            RSCDEBUG(logger, "Buffer of scope " << it->first << " not filled.");
             return;
         }
     }

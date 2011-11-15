@@ -26,10 +26,25 @@ const std::string TimestampSelector::SEND = "rsb::send";
 const std::string TimestampSelector::RECEIVE = "rsb::receive";
 const std::string TimestampSelector::DELIVER = "rsb::deliver";
 
+TimestampSelector::NoSuchTimestampException::NoSuchTimestampException(
+        const std::string &name) :
+        std::runtime_error(
+                "Event does not contain a timestamp with name '" + name + "'") {
+
+}
+
+TimestampSelector::NoSuchTimestampException::~NoSuchTimestampException() throw () {
+
+}
+
 TimestampSelector::TimestampSelector() {
 }
 
 TimestampSelector::~TimestampSelector() {
+}
+
+std::string TimestampSelector::getClassName() const {
+    return "TimestampSelector";
 }
 
 std::set<std::string> TimestampSelector::systemNames() {

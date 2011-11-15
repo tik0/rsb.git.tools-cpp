@@ -37,6 +37,8 @@ public:
     virtual void getTimestamp(const rsb::EventPtr &event,
             boost::uint64_t &timestamp, std::string &name);
 
+    virtual std::string getClassName() const;
+
 };
 
 /**
@@ -52,6 +54,8 @@ public:
 
     virtual void getTimestamp(const rsb::EventPtr &event,
             boost::uint64_t &timestamp, std::string &name);
+
+    virtual std::string getClassName() const;
 
 };
 
@@ -69,6 +73,8 @@ public:
     virtual void getTimestamp(const rsb::EventPtr &event,
             boost::uint64_t &timestamp, std::string &name);
 
+    virtual std::string getClassName() const;
+
 };
 
 /**
@@ -84,6 +90,31 @@ public:
 
     virtual void getTimestamp(const rsb::EventPtr &event,
             boost::uint64_t &timestamp, std::string &name);
+
+    virtual std::string getClassName() const;
+
+};
+
+/**
+ * A TimestampSelector specifically optimized for accessing a single user
+ * timestamp.
+ *
+ * @author jwienke
+ */
+class UserTimestampSelector: public TimestampSelector {
+public:
+
+    UserTimestampSelector(const std::string &name);
+    virtual ~UserTimestampSelector();
+
+    virtual void getTimestamp(const rsb::EventPtr &event,
+            boost::uint64_t &timestamp, std::string &name);
+
+    virtual std::string getClassName() const;
+    virtual void printContents(std::ostream &stream) const;
+
+private:
+    std::string name;
 
 };
 

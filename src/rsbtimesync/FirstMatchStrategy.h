@@ -21,6 +21,8 @@
 
 #include <boost/thread/recursive_mutex.hpp>
 
+#include <rsc/logging/Logger.h>
+
 #include "SyncStrategy.h"
 
 namespace rsbtimesync {
@@ -52,6 +54,7 @@ public:
     void setTimestampSelector(TimestampSelectorPtr selector);
 
 private:
+    rsc::logging::LoggerPtr logger;
     boost::recursive_mutex mutex;
     rsb::EventPtr primaryEvent;
     std::map<rsb::Scope, rsb::EventPtr> supplementaryEvents;
