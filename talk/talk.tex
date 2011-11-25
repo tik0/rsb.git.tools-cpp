@@ -1,9 +1,11 @@
-\documentclass[hyperref={pdfpagelabels=false}]{beamer}
+\documentclass{beamer}
 
-%\usepackage{ucs}
+\usepackage{ucs}
 \usepackage[utf8x]{inputenc}
-%\usepackage{csquotes}
+\usepackage{csquotes}
 \usepackage[english]{babel}
+
+\usepackage{url}
 
 %\usepackage[style=authoryear,natbib=true,bibencoding=inputenc]{biblatex}
 %\renewcommand{\finentrypunct}{.\vspace{0.15cm}}
@@ -11,30 +13,30 @@
 %\bibliography{talk}
 %\bibhang 1em
 
-\usepackage{listings}
-\lstloadlanguages{C++}
-\usepackage{xcolor}
-\definecolor{darkblue}{rgb}{0,0,.6}
-\definecolor{darkred}{rgb}{.6,0,0}
-\definecolor{darkgreen}{rgb}{0,.6,0}
-\definecolor{red}{rgb}{.98,0,0}
-\definecolor{white}{rgb}{1,1,1}
-\definecolor{grey}{rgb}{0.5,0.5,0.5}
-\lstset{
-	language=C++,
-	numbers=left,
-	numberstyle=\tiny,
-	numbersep=5pt,
-	tabsize=4,
-	showspaces=false,
-	showstringspaces=false,
-	basicstyle=\tiny\ttfamily,
-	commentstyle=\itshape\color{darkgreen},
-	keywordstyle=\bfseries\color{darkblue},
-	stringstyle=\color{darkred},
-	identifierstyle=,
-	backgroundcolor=\color{white},
-}
+% \usepackage{listings}
+% \lstloadlanguages{C++}
+% \usepackage{xcolor}
+% \definecolor{darkblue}{rgb}{0,0,.6}
+% \definecolor{darkred}{rgb}{.6,0,0}
+% \definecolor{darkgreen}{rgb}{0,.6,0}
+% \definecolor{red}{rgb}{.98,0,0}
+% \definecolor{white}{rgb}{1,1,1}
+% \definecolor{grey}{rgb}{0.5,0.5,0.5}
+% \lstset{
+% 	language=C++,
+% 	numbers=left,
+% 	numberstyle=\tiny,
+% 	numbersep=5pt,
+% 	tabsize=4,
+% 	showspaces=false,
+% 	showstringspaces=false,
+% 	basicstyle=\tiny\ttfamily,
+% 	commentstyle=\itshape\color{darkgreen},
+% 	keywordstyle=\bfseries\color{darkblue},
+% 	stringstyle=\color{darkred},
+% 	identifierstyle=,
+% 	backgroundcolor=\color{white},
+% }
 
 \beamertemplatenavigationsymbolsempty
 
@@ -97,7 +99,10 @@
     \end{block}
     \begin{block}{ApproximateTime}
         Forms synchronized sets of events where for each configured stream exactly one event is present. Minimizes the time interval covered by these sets while preserving some other conditions.\\
-        Based on: \link{http://www.ros.org/wiki/message_filters/ApproximateTime}
+        Based on:\\
+        \begin{small}
+            \url{http://www.ros.org/wiki/message\_filters/ApproximateTime}                                                                               
+        \end{small}
     \end{block}
 \end{frame}
 
