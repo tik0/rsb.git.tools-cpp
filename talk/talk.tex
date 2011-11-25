@@ -1,0 +1,129 @@
+\documentclass[hyperref={pdfpagelabels=false}]{beamer}
+
+%\usepackage{ucs}
+\usepackage[utf8x]{inputenc}
+%\usepackage{csquotes}
+\usepackage[english]{babel}
+
+%\usepackage[style=authoryear,natbib=true,bibencoding=inputenc]{biblatex}
+%\renewcommand{\finentrypunct}{.\vspace{0.15cm}}
+%\renewcommand{\bibfont}{\normalfont\tiny}
+%\bibliography{talk}
+%\bibhang 1em
+
+\usepackage{listings}
+\lstloadlanguages{C++}
+\usepackage{xcolor}
+\definecolor{darkblue}{rgb}{0,0,.6}
+\definecolor{darkred}{rgb}{.6,0,0}
+\definecolor{darkgreen}{rgb}{0,.6,0}
+\definecolor{red}{rgb}{.98,0,0}
+\definecolor{white}{rgb}{1,1,1}
+\definecolor{grey}{rgb}{0.5,0.5,0.5}
+\lstset{
+	language=C++,
+	numbers=left,
+	numberstyle=\tiny,
+	numbersep=5pt,
+	tabsize=4,
+	showspaces=false,
+	showstringspaces=false,
+	basicstyle=\tiny\ttfamily,
+	commentstyle=\itshape\color{darkgreen},
+	keywordstyle=\bfseries\color{darkblue},
+	stringstyle=\color{darkred},
+	identifierstyle=,
+	backgroundcolor=\color{white},
+}
+
+\beamertemplatenavigationsymbolsempty
+
+\mode<presentation>{
+	\usetheme{Malmoe}
+}
+
+\title{RSBTimeSync}
+\author{Johannes Wienke}
+\institute{Bielefeld University}
+%\titlegraphic{\includegraphics[height=2.3em]{uni_farb}\hspace{2em}\includegraphics[height=2.3em]{corlab}}
+
+\begin{document}
+
+\begin{frame}
+	\titlepage
+\end{frame}
+
+\begin{frame}
+	\frametitle{Motivation}
+	\begin{itemize}
+        \item Events in event-based systems are often related
+            \begin{itemize}
+                \item because of a common causing event
+                \item \textbf{because of aspects not modeled through events}
+            \end{itemize}
+        \item E.g.\ grabbing a video and an audio stream
+        \item Clients may require correctly related events as inputs 
+        \item Timestamps provide an easy means of synchronizing
+        \item Synchronization scheme differs across applications
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{RSBTimeSync}
+    Based on RSB features:
+    \begin{itemize}
+        \item Algorithms to synchronize RSB events based on timestamps:
+            \begin{itemize}
+                \item Currently 2.5 different strategies
+            \end{itemize}
+        \item Processing of arbitrary event types
+        \item No deserialization required, meta data already contain timestamps
+        \item C++ library and executable based on this library:
+            \begin{itemize}
+                \item Allows integration in client component as well as shared use through executable
+            \end{itemize}
+        \item Output again as RSB event
+            \begin{itemize}
+                \item Composite data type is supported in RSB core, remote clients do not need to link to the library the library
+            \end{itemize}
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{Algorithms}
+    \begin{block}{TimeFrame}
+        Associates to each event from a selected reference stream (scope) all events of other streams which are in a specified time frame around the timestamp of the reference event.
+    \end{block}
+    \begin{block}{ApproximateTime}
+        Forms synchronized sets of events where for each configured stream exactly one event is present. Minimizes the time interval covered by these sets while preserving some other conditions.\\
+        Based on: \link{http://www.ros.org/wiki/message_filters/ApproximateTime}
+    \end{block}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Configuration}
+    User needs to specify (\textit{optional}):
+    \begin{itemize}
+        \item A reference stream (scope, treated like other streams for some algorithms)
+        \item Supplementary streams (scopes)
+        \item The algorithm to use
+        \item \textit{A chain of responsibilities-like timestamp selection mechanism, e.g. \texttt{userTimeA,userTimeB,rsb::create}}
+        \item \textit{Algorithm-specific options}
+    \end{itemize}
+    Remarks:
+    \begin{itemize}
+        \item Handling of subscopes is currently undefined
+        \item Synchronization always requires a-priori knowledge of available streams / scopes
+    \end{itemize}
+\end{frame}
+    
+\begin{frame}
+	\frametitle{References}
+	%\printbibliography
+	\begin{center}
+		Thank you for your attention
+	\end{center}
+\end{frame}
+
+\end{document}
