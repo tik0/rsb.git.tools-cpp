@@ -140,6 +140,8 @@ private:
     rsb::EventPtr pivot;
     CandidatePtr currentCandidate;
 
+    void debugState() const;
+
 };
 
 }

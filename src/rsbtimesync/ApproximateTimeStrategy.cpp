@@ -23,9 +23,10 @@
 
 #include <boost/numeric/conversion/cast.hpp>
 
+#include <rsc/runtime/ContainerIO.h>
+
 #include <rsb/EventId.h>
 #include <rsb/MetaData.h>
-
 #include <rsb/EventCollections.h>
 
 using namespace std;
@@ -249,6 +250,7 @@ void ApproximateTimeStrategy::trackBack() {
 void ApproximateTimeStrategy::publishCandidate() {
 
     RSCINFO(logger, "Publishing candidate " << currentCandidate);
+    debugState();
 
     rsb::EventPtr resultEvent = handler->createEvent();
 
@@ -269,6 +271,7 @@ void ApproximateTimeStrategy::publishCandidate() {
     handler->handle(resultEvent);
 
     trackBack();
+    debugState();
     deleteOlderThanCandidate();
     currentCandidate.reset();
     pivot.reset();
@@ -328,7 +331,11 @@ void ApproximateTimeStrategy::process() {
                         logger,
                         "The proposed pivot is from a queue with dropped messages. Ignoring this candidate.");
                 // TODO include a warning in the case
-                erase(newCandidateYoungest->getScope());
+                // TODO XXX This does not seem to be most efficient regarding
+                // the contiguous criterion. this will possibly result in
+                // dropping on every topic even though there would be a
+                // contiguous set.
+                erase(newCandidate->getOldestEvent()->getScope());
                 continue;
             }
 
@@ -393,6 +400,7 @@ void ApproximateTimeStrategy::process() {
 void ApproximateTimeStrategy::handle(EventPtr event) {
 
     RSCDEBUG(logger, "Handling event " << event);
+    debugState();
 
     Scope scope = event->getScope();
 
@@ -417,7 +425,10 @@ void ApproximateTimeStrategy::handle(EventPtr event) {
     // is closest to the last emitted set might be thrown away. This would cause
     // sets which are not contiguous.
 
+    RSCTRACE(logger, "Added event to new queue.");
+    debugState();
     process();
+    debugState();
 
     RSCTRACE(
             logger,
@@ -451,6 +462,7 @@ void ApproximateTimeStrategy::handle(EventPtr event) {
         // finally, it still might be possible to find a good candidate now, so
         // try processing again
         process();
+        debugState();
 
     }
 
@@ -458,6 +470,18 @@ void ApproximateTimeStrategy::handle(EventPtr event) {
 
 void ApproximateTimeStrategy::setQueueSize(const unsigned int &size) {
     this->queueSize = size;
+}
+
+void ApproximateTimeStrategy::debugState() const {
+
+    if (logger->isDebugEnabled()) {
+
+        RSCDEBUG(
+                logger,
+                "\n#################### STATE ####################\n" << "pivot = " << pivot << "\n" << "currentCandidate = " << currentCandidate << "\n" << "queueDropMap = " << queueDropMap << "\n" << "newEventsByState = " << newEventsByScope << "\n" << "trackBackQueuesByScope = " << trackBackQueuesByScope << "\n#################### XXXXX ####################");
+
+    }
+
 }
 
 }
