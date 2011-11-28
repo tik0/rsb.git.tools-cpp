@@ -381,6 +381,9 @@ void ApproximateTimeStrategy::process() {
         // check whether we can publish an event
         if (newCandidateOldest == pivot) {
             // the search exhausted all candidates by definition
+            RSCDEBUG(
+                    logger,
+                    "Exhausted search: newCandidateOldest = " << newCandidateOldest << ", pivot = " << pivot);
             publishCandidate();
         } else if (youngestInterval >= pivotOldInterval) {
             RSCDEBUG(
@@ -399,12 +402,12 @@ void ApproximateTimeStrategy::process() {
 
 void ApproximateTimeStrategy::handle(EventPtr event) {
 
-    RSCDEBUG(logger, "Handling event " << event);
-    debugState();
-
     Scope scope = event->getScope();
 
-    boost::mutex::scoped_lock(mutex);
+    boost::mutex::scoped_lock lock(mutex);
+
+    RSCDEBUG(logger, "Handling event " << event);
+    debugState();
 
     if (!newEventsByScope.count(scope)) {
         throw invalid_argument(
@@ -418,7 +421,7 @@ void ApproximateTimeStrategy::handle(EventPtr event) {
     deque<EventPtr> &trackBackQueue = trackBackQueuesByScope[scope];
     RSCTRACE(
             logger,
-            "newQueue size = " << newQueue.size() << ", trackBackQueue size = " << trackBackQueue.size() << ", desired queueSize = " << queueSize);
+            "before add: newQueue size = " << newQueue.size() << ", trackBackQueue size = " << trackBackQueue.size() << ", desired queueSize = " << queueSize);
 
     newQueue.push_back(event);
     // we may not yet ensure the size of the queue because then the event which
@@ -432,7 +435,7 @@ void ApproximateTimeStrategy::handle(EventPtr event) {
 
     RSCTRACE(
             logger,
-            "newQueue size = " << newQueue.size() << ", trackBackQueue size = " << trackBackQueue.size() << ", desired queueSize = " << queueSize);
+            "after process: newQueue size = " << newQueue.size() << ", trackBackQueue size = " << trackBackQueue.size() << ", desired queueSize = " << queueSize);
 
     // finally we can ensure the size of the queues
     // TODO does this still ensure that sets are contiguous?
