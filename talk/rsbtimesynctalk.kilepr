@@ -36,14 +36,14 @@ order=-1
 
 [item:talk.tex]
 archive=true
-column=29
+column=0
 encoding=UTF-8
 highlight=LaTeX
-line=93
+line=57
 mode=LaTeX
-open=true
+open=false
 order=0
 
 [view-settings,view=0,item:talk.tex]
-CursorColumn=29
-CursorLine=93
+CursorColumn=0
+CursorLine=57

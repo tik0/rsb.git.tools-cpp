@@ -98,6 +98,9 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
+    // let factory register default converters
+    Factory::getInstance();
+
     // register converter
     stringConverterRepository()->registerConverter(
             Converter<string>::Ptr(new EventsByScopeMapConverter));

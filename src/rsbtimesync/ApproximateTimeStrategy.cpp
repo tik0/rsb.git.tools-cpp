@@ -479,9 +479,11 @@ void ApproximateTimeStrategy::debugState() const {
 
     if (logger->isDebugEnabled()) {
 
+#if RSC_VERSION_NUMERIC >= 000600
         RSCDEBUG(
                 logger,
                 "\n#################### STATE ####################\n" << "pivot = " << pivot << "\n" << "currentCandidate = " << currentCandidate << "\n" << "queueDropMap = " << queueDropMap << "\n" << "newEventsByState = " << newEventsByScope << "\n" << "trackBackQueuesByScope = " << trackBackQueuesByScope << "\n#################### XXXXX ####################");
+#endif
 
     }
 
