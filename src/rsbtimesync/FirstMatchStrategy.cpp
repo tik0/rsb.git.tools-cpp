@@ -79,7 +79,7 @@ void FirstMatchStrategy::handle(EventPtr event) {
     }
 
     // check if we need to flush buffers
-    if (!event) {
+    if (!primaryEvent) {
         return;
     }
     for (std::map<Scope, EventPtr>::const_iterator it =
