@@ -153,11 +153,18 @@ int main(int argc, char* argv[]) {
     // Configure a Listener object.
     ParticipantConfig config
         = Factory::getInstance().getDefaultParticipantConfig();
-    ParticipantConfig::Transport transport = config.getTransport("spread");
-    Properties options = transport.getOptions();
-    options["converters"] = createConverterSelectionStrategy<string>();
-    transport.setOptions(options);
-    config.addTransport(transport);
+
+    set<ParticipantConfig::Transport> transports
+      = config.getTransports();
+    for (set<ParticipantConfig::Transport>::const_iterator it
+           = transports.begin(); it != transports.end(); ++it) {
+      ParticipantConfig::Transport& transport
+        = config.mutableTransport(it->getName());
+      Properties options = transport.getOptions();
+      options["converters"] = createConverterSelectionStrategy<string>();
+      transport.setOptions(options);
+    }
+
     ListenerPtr listener
         = Factory::getInstance().createListener(Scope(scope), config);
     listener->addHandler(HandlerPtr(new FormattingHandler(formatter)));
