@@ -283,11 +283,16 @@ void configureConversion() {
     // adapt default participant configuration
     ParticipantConfig config =
             Factory::getInstance().getDefaultParticipantConfig();
-    ParticipantConfig::Transport transport = config.getTransport("spread");
-    rsc::runtime::Properties options = transport.getOptions();
-    options["converters"] = noConversionSelectionStrategy;
-    transport.setOptions(options);
-    config.addTransport(transport);
+    set<ParticipantConfig::Transport> transports
+         = config.getTransports();
+    for (set<ParticipantConfig::Transport>::const_iterator it
+           = transports.begin(); it != transports.end(); ++it) {
+        ParticipantConfig::Transport& transport
+          = config.mutableTransport(it->getName());
+        rsc::runtime::Properties options = transport.getOptions();
+        options["converters"] = noConversionSelectionStrategy;
+        transport.setOptions(options);
+    }
     Factory::getInstance().setDefaultParticipantConfig(config);
 
 }
@@ -395,4 +400,3 @@ int main(int argc, char **argv) {
     return EXIT_SUCCESS;
 
 }
-
