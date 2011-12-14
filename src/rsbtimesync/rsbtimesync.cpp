@@ -284,12 +284,11 @@ void configureConversion() {
     // adapt default participant configuration
     ParticipantConfig config =
             Factory::getInstance().getDefaultParticipantConfig();
-    set<ParticipantConfig::Transport> transports
-         = config.getTransports();
-    for (set<ParticipantConfig::Transport>::const_iterator it
-           = transports.begin(); it != transports.end(); ++it) {
-        ParticipantConfig::Transport& transport
-          = config.mutableTransport(it->getName());
+    set<ParticipantConfig::Transport> transports = config.getTransports();
+    for (set<ParticipantConfig::Transport>::const_iterator it =
+            transports.begin(); it != transports.end(); ++it) {
+        ParticipantConfig::Transport& transport = config.mutableTransport(
+                it->getName());
         rsc::runtime::Properties options = transport.getOptions();
         options["converters"] = noConversionSelectionStrategy;
         transport.setOptions(options);
@@ -317,11 +316,15 @@ ParticipantConfig createInformerConfig() {
     config.setQualityOfServiceSpec(
             QualityOfServiceSpec(QualityOfServiceSpec::ORDERED,
                     QualityOfServiceSpec::RELIABLE));
-    ParticipantConfig::Transport transport = config.getTransport("spread");
-    rsc::runtime::Properties options = transport.getOptions();
-    options["converters"] = selectionStrategy;
-    transport.setOptions(options);
-    config.addTransport(transport);
+    set<ParticipantConfig::Transport> transports = config.getTransports();
+    for (set<ParticipantConfig::Transport>::const_iterator it =
+            transports.begin(); it != transports.end(); ++it) {
+        ParticipantConfig::Transport& transport = config.mutableTransport(
+                it->getName());
+        rsc::runtime::Properties options = transport.getOptions();
+        options["converters"] = selectionStrategy;
+        transport.setOptions(options);
+    }
     return config;
 
 }
@@ -358,7 +361,7 @@ int main(int argc, char **argv) {
             rsc::logging::Logger::LEVEL_TRACE);
 #else
     rsc::logging::LoggerFactory::getInstance().reconfigure(
-                rsc::logging::Logger::LEVEL_TRACE);
+            rsc::logging::Logger::LEVEL_TRACE);
 #endif
 
     registerStrategies();
