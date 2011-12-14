@@ -27,13 +27,19 @@
 
 #include <rsc/logging/LoggerFactory.h>
 #include <rsc/subprocess/Subprocess.h>
+#include <rsc/RSCVersion.h>
 
 #include "testconfig.h"
 
 inline void setupLogging() {
 
-	rsc::logging::LoggerFactory::getInstance()->reconfigure(
-			rsc::logging::Logger::LEVEL_TRACE);
+#if RSC_VERSION_NUMERIC < 000600
+    rsc::logging::LoggerFactory::getInstance()->reconfigure(
+            rsc::logging::Logger::LEVEL_TRACE);
+#else
+    rsc::logging::LoggerFactory::getInstance().reconfigure(
+                rsc::logging::Logger::LEVEL_TRACE);
+#endif
 
 }
 

@@ -42,6 +42,7 @@
 #include <rsc/logging/LoggerFactory.h>
 #include <rsc/runtime/ContainerIO.h>
 #include <rsc/threading/SynchronizedQueue.h>
+#include <rsc/RSCVersion.h>
 
 #include "ApproximateTimeStrategy.h"
 #include "FirstMatchStrategy.h"
@@ -352,8 +353,13 @@ private:
 
 int main(int argc, char **argv) {
 
+#if RSC_VERSION_NUMERIC < 000600
     rsc::logging::LoggerFactory::getInstance()->reconfigure(
             rsc::logging::Logger::LEVEL_TRACE);
+#else
+    rsc::logging::LoggerFactory::getInstance().reconfigure(
+                rsc::logging::Logger::LEVEL_TRACE);
+#endif
 
     registerStrategies();
 
