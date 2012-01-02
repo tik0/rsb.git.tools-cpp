@@ -413,8 +413,8 @@ void ApproximateTimeStrategy::handle(EventPtr event) {
         throw invalid_argument(
                 boost::str(
                         boost::format(
-                                "Received an event on scope %s, which is not one of the configured scopes.")
-                                % scope));
+                                "Received an event on scope %s, which is not one of the configured scopes. Event: %s")
+                                % scope % event));
     }
 
     deque<EventPtr> &newQueue = newEventsByScope[scope];
