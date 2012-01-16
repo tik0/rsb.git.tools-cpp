@@ -154,15 +154,14 @@ int main(int argc, char* argv[]) {
     ParticipantConfig config
         = Factory::getInstance().getDefaultParticipantConfig();
 
-    set<ParticipantConfig::Transport> transports
-      = config.getTransports();
-    for (set<ParticipantConfig::Transport>::const_iterator it
-           = transports.begin(); it != transports.end(); ++it) {
-      ParticipantConfig::Transport& transport
-        = config.mutableTransport(it->getName());
-      Properties options = transport.getOptions();
-      options["converters"] = createConverterSelectionStrategy<string>();
-      transport.setOptions(options);
+    set<ParticipantConfig::Transport> transports = config.getTransports();
+    for (set<ParticipantConfig::Transport>::const_iterator it =
+            transports.begin(); it != transports.end(); ++it) {
+        ParticipantConfig::Transport& transport = config.mutableTransport(
+                it->getName());
+        Properties options = transport.getOptions();
+        options["converters"] = createConverterSelectionStrategy<string>();
+        transport.setOptions(options);
     }
 
     ListenerPtr listener
