@@ -41,7 +41,7 @@ public:
 
     /**
      * Return a string which provides additional information regarding
-     * the type of the event payload. For example, the lenght of a
+     * the type of the event payload. For example, the length of a
      * string or array payload could be returned here.
      *
      * @param event The event, from which the information should be
