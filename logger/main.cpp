@@ -2,7 +2,7 @@
  *
  * This file is part of the RSB project
  *
- * Copyright (C) 2011 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2011, 2012 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This program is free software; you can redistribute it
  * and/or modify it under the terms of the GNU General
@@ -90,9 +90,9 @@ bool handleCommandline(int argc, char *argv[]) {
     ("scope",
      value<string>(&scope),
      "The scope of the channel for which events should be logged.")
-    ("format",
+    ("style",
      value<string>(&eventFormat)->default_value("compact"),
-     str(format("The format that should be used to print received events. Value has to be one of %1%.")
+     str(format("The style that should be used to print received events. Value has to be one of %1%.")
          % getEventFormatterNames()).c_str());
 
     positional_options_description positional_options;
