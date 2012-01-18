@@ -30,12 +30,17 @@
 
 #include <rsb/Factory.h>
 #include <rsb/Handler.h>
+#include <rsb/EventCollections.h>
 #include <rsb/filter/ScopeFilter.h>
 
+#include <rsb/converter/ByteArrayConverter.h>
+#include <rsb/converter/EventsByScopeMapConverter.h>
 #include <rsb/converter/PredicateConverterList.h>
 #include <rsb/converter/RegexConverterPredicate.h>
-#include <rsb/converter/ByteArrayConverter.h>
+#include <rsb/converter/TypeNameConverterPredicate.h>
 #include <rsb/converter/StringConverter.h>
+
+#include <rsc/logging/LoggerFactory.h>
 
 #include "EventFormatter.h"
 #include "PayloadFormatter.h"
@@ -73,6 +78,18 @@ typename ConverterSelectionStrategy<WireType>::Ptr createConverterSelectionStrat
     list< pair<ConverterPredicatePtr, typename Converter<WireType>::Ptr> > converters;
     converters.push_back(make_pair(ConverterPredicatePtr(new RegexConverterPredicate("(utf-8|ascii)-string")),
                    typename Converter<WireType>::Ptr(new StringConverter())));
+    // pass the above converters to the event collection converter as a baseline for what can be deserialized
+    typename Converter<WireType>::Ptr collectionConverter(
+            new EventsByScopeMapConverter(
+                    typename ConverterSelectionStrategy<WireType>::Ptr(
+                            new PredicateConverterList<WireType>(
+                                    converters.begin(), converters.end())),
+                    typename ConverterSelectionStrategy<WireType>::Ptr(
+                            new PredicateConverterList<WireType>(
+                                    converters.begin(), converters.end()))));
+    converters.push_back(make_pair(ConverterPredicatePtr(new TypeNameConverterPredicate(collectionConverter->getWireSchema())),
+                   collectionConverter));
+    // last but not least use a converter which can handle everything
     converters.push_back(make_pair(ConverterPredicatePtr(new AlwaysApplicable()),
                    typename Converter<WireType>::Ptr(new ByteArrayConverter())));
     return typename ConverterSelectionStrategy<WireType>::Ptr(new PredicateConverterList<WireType>(converters.begin(), converters.end()));
@@ -104,8 +121,9 @@ bool handleCommandline(int argc, char *argv[]) {
       .positional(positional_options)
       .run(), map);
     notify(map);
-    if (map.count("help"))
+    if (map.count("help")) {
         return true;
+    }
     if (!getEventFormatterNames().count(eventFormat)) {
         throw invalid_argument(str(format("Argument of --format option has to one of %1%.")
                    % getEventFormatterNames()));
@@ -133,6 +151,9 @@ void handleSIGINT(int /*signal*/) {
 }
 
 int main(int argc, char* argv[]) {
+
+//    rsc::logging::LoggerFactory::getInstance().reconfigure(rsc::logging::Logger::LEVEL_TRACE);
+
     // Handle commandline arguments.
     try {
         if (handleCommandline(argc, argv)) {

@@ -17,10 +17,13 @@
  *
  * ============================================================ */
 
-#include "PayloadFormatter.h"
-#include "StringPayloadFormatter.h"
+#include <rsb/EventCollections.h>
+
 #include "BytesPayloadFormatter.h"
+#include "EventsByScopeMapFormatter.h"
+#include "PayloadFormatter.h"
 #include "ProtocolBufferPayloadFormatter.h"
+#include "StringPayloadFormatter.h"
 
 using namespace std;
 
@@ -39,6 +42,7 @@ PayloadFormatterFactory::PayloadFormatterFactory() {
     this->register_("std::string", &StringPayloadFormatter::create);
     this->register_("bytes",       &BytesPayloadFormatter::create);
     this->register_("pb-message",  &ProtocolBufferPayloadFormatter::create);
+    this->register_(rsc::runtime::typeName<rsb::EventsByScopeMap>(),  &EventsByScopeMapFormatter::create);
 }
 
 PayloadFormatterPtr getPayloadFormatter(EventPtr event) {

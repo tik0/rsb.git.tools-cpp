@@ -2,7 +2,7 @@
  *
  * This file is part of the RSB project
  *
- * Copyright (C) 2011 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2012 Johannes Wienke <jwienke at techfak dot uni-bielefeld dot de>
  *
  * This program is free software; you can redistribute it
  * and/or modify it under the terms of the GNU General
@@ -20,21 +20,30 @@
 #pragma once
 
 #include "EventFormatter.h"
+#include "PayloadFormatter.h"
 
 /**
+ * A formatter for EventsByScopeMap containing events.
  *
- * @author jmoringe
+ * @author jwienke
  */
-class DetailedEventFormatter: public EventFormatter {
+class EventsByScopeMapFormatter: public PayloadFormatter {
 public:
+    /**
+     * Constructs a new EventsByScopeMapFormatter.
+     *
+     * @param containedFormatter formatter to use for events contained in the map
+     */
+    EventsByScopeMapFormatter(EventFormatterPtr containedFormatter);
 
-    DetailedEventFormatter(unsigned int indentSpaces = 0u);
+    static PayloadFormatter* create(const rsc::runtime::Properties &props);
 
-    static EventFormatter* create(const rsc::runtime::Properties &props);
+    std::string getExtraTypeInfo(rsb::EventPtr event) const;
 
     void format(std::ostream &stream, rsb::EventPtr event);
-
 private:
-    std::string indent;
-
+    /**
+     * Formatter used for contained events in the map.
+     */
+    EventFormatterPtr containedFormatter;
 };

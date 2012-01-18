@@ -47,57 +47,61 @@ ptime unixMicroSecondsToPtime(uint64_t msecs) {
     return local_adj::utc_to_local(temp2);
 }
 
-EventFormatter* DetailedEventFormatter::create(const Properties &/*props*/) {
-    return new DetailedEventFormatter();
+EventFormatter* DetailedEventFormatter::create(const Properties &props) {
+    return new DetailedEventFormatter(props.getAs<unsigned int>("indentSpaces", 0));
+}
+
+DetailedEventFormatter::DetailedEventFormatter(unsigned int indentSpaces) {
+    indent.append(indentSpaces, ' ');
 }
 
 void DetailedEventFormatter::format(ostream &stream, EventPtr event) {
-    stream << "Event" << std::endl
-           << "  Scope           " << event->getScopePtr()->toString() << std::endl
-           << "  Id              " << event->getEventId() << std::endl
-           << "  Type            " << event->getType() << std::endl
-           << "  Origin          " << event->getMetaData().getSenderId().getIdAsString() << std::endl;
+    stream << indent << "Event" << std::endl
+           << indent << "  Scope           " << event->getScopePtr()->toString() << std::endl
+           << indent << "  Id              " << event->getEventId() << std::endl
+           << indent << "  Type            " << event->getType() << std::endl
+           << indent << "  Origin          " << event->getMetaData().getSenderId().getIdAsString() << std::endl;
 
     const MetaData& metaData = event->getMetaData();
 
-    stream << "Timestamps" << std::endl
-           << "  Create  " << unixMicroSecondsToPtime(metaData.getCreateTime()) << "+??:??" << std::endl
-           << "  Send    " << unixMicroSecondsToPtime(metaData.getSendTime()) << "+??:??" << std::endl
-           << "  Receive " << unixMicroSecondsToPtime(metaData.getReceiveTime()) << "+??:??" << std::endl
-           << "  Deliver " << unixMicroSecondsToPtime(metaData.getDeliverTime()) << "+??:??" << std::endl;
+    stream << indent << "Timestamps" << std::endl
+           << indent << "  Create  " << unixMicroSecondsToPtime(metaData.getCreateTime()) << "+??:??" << std::endl
+           << indent << "  Send    " << unixMicroSecondsToPtime(metaData.getSendTime()) << "+??:??" << std::endl
+           << indent << "  Receive " << unixMicroSecondsToPtime(metaData.getReceiveTime()) << "+??:??" << std::endl
+           << indent << "  Deliver " << unixMicroSecondsToPtime(metaData.getDeliverTime()) << "+??:??" << std::endl;
     for (map<string, uint64_t>::const_iterator it = metaData.userTimesBegin();
          it != metaData.userTimesEnd(); ++it) {
-        stream << "  *" << left << setw(6) << it->first
+        stream << indent << "  *" << left << setw(6) << it->first
                << " " << unixMicroSecondsToPtime(it->second) << "+??:??" << std::endl;
     }
 
     if (metaData.userInfosBegin() != metaData.userInfosEnd()) {
-        stream << "User-Infos" << std::endl;
+        stream << indent << "User-Infos" << std::endl;
         for (map<string, string>::const_iterator it = metaData.userInfosBegin();
              it != metaData.userInfosEnd(); ++it) {
-            stream << "  " << left << setw(8) << it->first
+            stream << indent << "  " << left << setw(8) << it->first
                    << " " << it->second << std::endl;
         }
     }
 
     set<EventId> causes = event->getCauses();
     if (!causes.empty()) {
-	stream << "Causes" << std::endl;
-	for (set<EventId>::iterator it = causes.begin();
-	     it != causes.end(); ++it) {
-	    stream << "  " << *it << std::endl;
-	}
+        stream << indent << "Causes" << std::endl;
+        for (set<EventId>::iterator it = causes.begin(); it != causes.end();
+                ++it) {
+            stream << indent << "  " << *it << std::endl;
+        }
     }
 
     PayloadFormatterPtr formatter = getPayloadFormatter(event);
-    stream << "Payload (" << event->getType();
+    stream << indent << "Payload (" << event->getType();
     string extra = formatter->getExtraTypeInfo(event);
     if (!extra.empty()) {
-	stream << ", " << extra;
+        stream << ", " << extra;
     }
-    stream   << ")" << std::endl << "  ";
+    stream << ")" << std::endl << "  ";
     formatter->format(stream, event);
     stream << std::endl;
 
-    stream << string(79, '-') << std::endl;
+    stream << indent << string(79 - indent.length(), '-') << std::endl;
 }
