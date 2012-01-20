@@ -25,6 +25,7 @@
 #include "DetailedEventFormatter.h"
 #ifndef RSB_LOGGER_NO_STATISTICS_FORMATTER
 #include "StatisticsEventFormatter.h"
+#include "MonitorEventFormatter.h"
 #endif
 #include "PayloadOnlyEventFormatter.h"
 
@@ -38,20 +39,21 @@ EventFormatter::~EventFormatter() {
 }
 
 EventFormatterFactory::EventFormatterFactory() {
-    this->register_("compact",  &CompactEventFormatter::create);
+    this->register_("compact", &CompactEventFormatter::create);
     this->register_("detailed", &DetailedEventFormatter::create);
 #ifndef RSB_LOGGER_NO_STATISTICS_FORMATTER
-    this->register_("stats",    &StatisticsEventFormatter::create);
+    this->register_("stats", &StatisticsEventFormatter::create);
+    this->register_("monitor", &MonitorEventFormatter::create);
 #endif
-    this->register_("payload",  &PayloadOnlyEventFormatter::create);
+    this->register_("payload", &PayloadOnlyEventFormatter::create);
 }
 
 set<string> getEventFormatterNames() {
     set<string> result;
 
     EventFormatterFactory &factory = EventFormatterFactory::getInstance();
-    for (EventFormatterFactory::ImplMapProxy::const_iterator it
-             = factory.impls().begin(); it != factory.impls().end(); ++it) {
+    for (EventFormatterFactory::ImplMapProxy::const_iterator it =
+            factory.impls().begin(); it != factory.impls().end(); ++it) {
         result.insert(it->first);
     }
 

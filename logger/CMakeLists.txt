@@ -12,6 +12,8 @@ IF(Boost_VERSION LESS 103801)
     MESSAGE(STATUS "Boost version is too old, disabling statistics formatter due to a bug.")
     LIST(REMOVE_ITEM LOGGER_SOURCES "StatisticsEventFormatter.cpp")
     LIST(REMOVE_ITEM LOGGER_HEADERS "StatisticsEventFormatter.h")
+    LIST(REMOVE_ITEM LOGGER_SOURCES "MonitorEventFormatter.cpp")
+    LIST(REMOVE_ITEM LOGGER_HEADERS "MonitorEventFormatter.h")
 ENDIF()
 
 ADD_EXECUTABLE(logger ${LOGGER_SOURCES} ${LOGGER_HEADERS})
