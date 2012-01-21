@@ -2,7 +2,7 @@
  *
  * This file is part of the RSB project
  *
- * Copyright (C) 2011 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2012 Arne Nordmann <anordman@techfak.uni-bielefeld.de>
  *
  * This program is free software; you can redistribute it
  * and/or modify it under the terms of the GNU General
@@ -29,8 +29,8 @@
 
 /**
  * This formatter prints statistical information about received events
- * on a scope and all its sub-scopes, instead of the actual events and their
- * pay-loads.
+ * on a scope and all its sub-scopes, instead of the actual events and
+ * their pay-loads.
  *
  * @author anordman
  */

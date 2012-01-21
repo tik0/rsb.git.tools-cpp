@@ -2,7 +2,7 @@
  *
  * This file is part of the RSB project
  *
- * Copyright (C) 2011 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2012 Arne Nordmann <anordman@techfak.uni-bielefeld.de>
  *
  * This program is free software; you can redistribute it
  * and/or modify it under the terms of the GNU General
@@ -68,8 +68,10 @@ public:
 
     void reset() {
     }
+
     void update(EventPtr /*event*/) {
     }
+
     void print(ostream &stream) {
         stream << local_adj::utc_to_local(msecsClock::universal_time());
     }
@@ -88,9 +90,9 @@ public:
     void print(ostream &stream) {
         ios_all_saver saver(stream);
 
-        stream << fixed << setprecision(2) << right << setw(7) << ac::mean(
-                this->stats) << " ±" << setw(7) << sqrt(
-                ac::variance(this->stats));
+        stream << fixed << setprecision(2) << right
+               << setw(7) << ac::mean(this->stats)
+               << " ±" << setw(7) << sqrt(ac::variance(this->stats));
     }
 protected:
     void update(double point) {
@@ -209,10 +211,10 @@ void MonitorEventFormatter::printStats() {
 
     printHeader();
 
-    for (ScopeMap::iterator scps = this->scopes.begin(); scps
+    for (ScopeMap::const_iterator scps = this->scopes.begin(); scps
             != this->scopes.end(); ++scps) {
 
-        for (QuantitiesMap::iterator it = scps->second.begin(); it
+        for (QuantitiesMap::const_iterator it = scps->second.begin(); it
                 != scps->second.end(); ++it) {
 
             printQuantity(it->second);
