@@ -2,7 +2,7 @@
  *
  * This file is part of the RSB project
  *
- * Copyright (C) 2011 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2011, 2012 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This program is free software; you can redistribute it
  * and/or modify it under the terms of the GNU General
@@ -48,10 +48,13 @@ ptime unixMicroSecondsToPtime(uint64_t msecs) {
 }
 
 EventFormatter* DetailedEventFormatter::create(const Properties &props) {
-    return new DetailedEventFormatter(props.getAs<unsigned int>("indentSpaces", 0));
+    return new DetailedEventFormatter(props.getAs<unsigned int>("indentSpaces", 0),
+                                      props.getAs<bool>        ("separator",    true));
 }
 
-DetailedEventFormatter::DetailedEventFormatter(unsigned int indentSpaces) {
+DetailedEventFormatter::DetailedEventFormatter(unsigned int indentSpaces,
+                                               bool         separator)
+    : separator(separator) {
     indent.append(indentSpaces, ' ');
 }
 
@@ -103,5 +106,7 @@ void DetailedEventFormatter::format(ostream &stream, EventPtr event) {
     formatter->format(stream, event);
     stream << std::endl;
 
-    stream << indent << string(79 - indent.length(), '-') << std::endl;
+    if (this->separator) {
+        stream << indent << string(79 - indent.length(), '-') << std::endl;
+    }
 }
