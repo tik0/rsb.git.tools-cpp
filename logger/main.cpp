@@ -75,23 +75,42 @@ private:
 
 template <typename WireType>
 typename ConverterSelectionStrategy<WireType>::Ptr createConverterSelectionStrategy() {
+    // Construct a list of pairs of converters and predicates. When
+    // wrapped in a PredicateConverterList (see end of function), each
+    // predicate is used to determine whether the associated converter
+    // should be applied to a particular payload.
     list< pair<ConverterPredicatePtr, typename Converter<WireType>::Ptr> > converters;
+
+    // Add the two string converters first since they operate on
+    // specific wire-schemas.
     converters.push_back(make_pair(ConverterPredicatePtr(new RegexConverterPredicate("(utf-8|ascii)-string")),
                    typename Converter<WireType>::Ptr(new StringConverter())));
-    // pass the above converters to the event collection converter as a baseline for what can be deserialized
-    typename Converter<WireType>::Ptr collectionConverter(
+
+    // Pass the above converters to the event collection converter as
+    // a baseline for what can be deserialized.
+    {
+        list< pair<ConverterPredicatePtr, typename Converter<WireType>::Ptr> > converters_(converters);
+        converters_.push_back(make_pair(ConverterPredicatePtr(new AlwaysApplicable()),
+                                       typename Converter<WireType>::Ptr(new ByteArrayConverter())));
+
+        typename Converter<WireType>::Ptr collectionConverter(
             new EventsByScopeMapConverter(
-                    typename ConverterSelectionStrategy<WireType>::Ptr(
-                            new PredicateConverterList<WireType>(
-                                    converters.begin(), converters.end())),
-                    typename ConverterSelectionStrategy<WireType>::Ptr(
-                            new PredicateConverterList<WireType>(
-                                    converters.begin(), converters.end()))));
-    converters.push_back(make_pair(ConverterPredicatePtr(new TypeNameConverterPredicate(collectionConverter->getWireSchema())),
-                   collectionConverter));
-    // last but not least use a converter which can handle everything
+                typename ConverterSelectionStrategy<WireType>::Ptr(
+                    new PredicateConverterList<WireType>(
+                        converters_.begin(), converters_.end())),
+                typename ConverterSelectionStrategy<WireType>::Ptr(
+                    new PredicateConverterList<WireType>(
+                        converters_.begin(), converters_.end()))));
+        converters.push_back(make_pair(ConverterPredicatePtr(new TypeNameConverterPredicate(collectionConverter->getWireSchema())),
+                                       collectionConverter));
+    }
+
+    // Last but not least, use a converter which can handle everything.
     converters.push_back(make_pair(ConverterPredicatePtr(new AlwaysApplicable()),
-                   typename Converter<WireType>::Ptr(new ByteArrayConverter())));
+                                   typename Converter<WireType>::Ptr(new ByteArrayConverter())));
+
+    // Return a pointer to the constructed converter selection
+    // strategy.
     return typename ConverterSelectionStrategy<WireType>::Ptr(new PredicateConverterList<WireType>(converters.begin(), converters.end()));
 }
 
