@@ -41,7 +41,7 @@ EventsByScopeMapFormatter::EventsByScopeMapFormatter(
 PayloadFormatter* EventsByScopeMapFormatter::create(const Properties& props) {
     return new EventsByScopeMapFormatter(
             props.get<EventFormatterPtr>("containedFormatter",
-                    EventFormatterPtr(new DetailedEventFormatter(6))));
+                                         EventFormatterPtr(new DetailedEventFormatter(6, false))));
 }
 
 string EventsByScopeMapFormatter::getExtraTypeInfo(EventPtr event) const {
