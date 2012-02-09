@@ -229,7 +229,7 @@ void MonitorEventFormatter::printStats() {
 }
 
 void MonitorEventFormatter::printHeader() {
-    this->stream << string(100, '\n');
+    this->stream << "\x1b[1;1f\x1b[J";
 
     stream << "RSB Scope Monitor";
     this->stream << endl;
