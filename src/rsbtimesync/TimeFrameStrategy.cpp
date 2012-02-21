@@ -198,11 +198,11 @@ void TimeFrameStrategy::cleanerThreadMethod() {
             subEventsByTime.erase(
                     subEventsByTime.begin(),
                     subEventsByTime.upper_bound(
-                            rsc::misc::currentTimeMicros() - bufferTimeMus));
+                            rsc::misc::currentTimeMicros() - (bufferTimeMus + timeFrameMus)));
         }
 
         boost::this_thread::sleep(
-                boost::posix_time::microseconds(2 * bufferTimeMus));
+                boost::posix_time::microseconds(2 * (bufferTimeMus + timeFrameMus)));
 
     }
 
