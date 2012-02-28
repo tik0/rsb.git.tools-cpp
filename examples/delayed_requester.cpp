@@ -47,6 +47,7 @@ using namespace rsb::patterns;
 
 string dataScopeName;
 string bufferScopeName;
+int delaySec = 1;
 
 class DelayedRequestAndPrintTask: public rsc::threading::SimpleTask {
 public:
@@ -57,7 +58,7 @@ public:
     }
 
     void run() {
-        boost::this_thread::sleep(boost::posix_time::seconds(1));
+        boost::this_thread::sleep(boost::posix_time::seconds(delaySec));
 
         EventPtr requestEvent = bufferServer->call(
                 "get",
@@ -67,13 +68,21 @@ public:
 
         cout << "#########" << endl;
         cout << "Original: " << originalEvent << endl;
-        cout << "          "
-                << *boost::static_pointer_cast<string>(originalEvent->getData())
-                << endl;
+        if (originalEvent->getData()
+                && originalEvent->getType() == rsc::runtime::typeName<string>()) {
+            cout
+                    << "          "
+                    << *boost::static_pointer_cast<string>(
+                            originalEvent->getData()) << endl;
+        }
         cout << "Request:  " << requestEvent << endl;
-        cout << "          "
-                << *boost::static_pointer_cast<string>(requestEvent->getData())
-                << endl;
+        if (requestEvent->getData()
+                && requestEvent->getType() == rsc::runtime::typeName<string>()) {
+            cout
+                    << "          "
+                    << *boost::static_pointer_cast<string>(
+                            requestEvent->getData()) << endl;
+        }
     }
 
 private:
@@ -108,7 +117,9 @@ int main(int argc, char **argv) {
     options.add_options()("help,h", "Display a help message.")("scope,s",
             value<string>(&dataScopeName), "The scope of original data")(
             "bufferscope,b", value<string>(&bufferScopeName),
-            "The scope this buffer is available on with its RPC interface.");
+            "The scope this buffer is available on with its RPC interface.")(
+            "delay,d", value<int>(&delaySec),
+            "delay until requesting in seconds");
 
     variables_map map;
     store(command_line_parser(argc, argv).options(options).run(), map);

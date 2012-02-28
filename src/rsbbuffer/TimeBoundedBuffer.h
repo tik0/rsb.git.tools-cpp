@@ -51,12 +51,15 @@ public:
 
 private:
 
+    void removeOld();
+
     rsc::logging::LoggerPtr logger;
 
     boost::uint64_t deltaInMuSec;
 
-    boost::recursive_mutex eventMapMutex;
+    boost::recursive_mutex mapsMutex;
     std::map<rsb::EventId, rsb::EventPtr> eventMap;
+    std::multimap<boost::uint64_t, rsb::EventId> deletionTimeToId;
 
 };
 

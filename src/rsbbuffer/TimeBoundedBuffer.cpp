@@ -27,6 +27,7 @@
 #include "TimeBoundedBuffer.h"
 
 #include <rsb/EventId.h>
+#include <rsb/MetaData.h>
 
 using namespace std;
 
@@ -41,20 +42,51 @@ TimeBoundedBuffer::~TimeBoundedBuffer() {
 }
 
 void TimeBoundedBuffer::insert(rsb::EventPtr event) {
-    boost::recursive_mutex::scoped_lock lock(eventMapMutex);
+    boost::recursive_mutex::scoped_lock lock(mapsMutex);
     RSCTRACE(logger, "Inserting event with ID " << event->getEventId());
     eventMap.insert(make_pair(event->getEventId(), event));
-    RSCTRACE(logger, "New size: " << eventMap.size());
+    deletionTimeToId.insert(
+            make_pair(event->getMetaData().getDeliverTime() + deltaInMuSec,
+                    event->getEventId()));
+    removeOld();
+    RSCTRACE(
+            logger,
+            "New sizes: " << eventMap.size() << " && " << deletionTimeToId.size());
+    assert(eventMap.size() == deletionTimeToId.size());
 }
 
 rsb::EventPtr TimeBoundedBuffer::get(const rsb::EventId &id) {
-    boost::recursive_mutex::scoped_lock lock(eventMapMutex);
+    boost::recursive_mutex::scoped_lock lock(mapsMutex);
     map<rsb::EventId, rsb::EventPtr>::const_iterator it = eventMap.find(id);
     if (it != eventMap.end()) {
         return it->second;
     } else {
         return rsb::EventPtr();
     }
+}
+
+void TimeBoundedBuffer::removeOld() {
+    boost::recursive_mutex::scoped_lock lock(mapsMutex);
+
+    boost::uint64_t now = rsc::misc::currentTimeMicros();
+
+    map<boost::uint64_t, rsb::EventId>::iterator startRange =
+            deletionTimeToId.begin();
+    map<boost::uint64_t, rsb::EventId>::iterator endRange =
+            deletionTimeToId.upper_bound(now);
+    if (endRange != startRange) {
+
+        for (map<boost::uint64_t, rsb::EventId>::iterator it = startRange;
+                it != endRange; ++it) {
+            eventMap.erase(it->second);
+        }
+
+        deletionTimeToId.erase(startRange, endRange);
+
+    }
+
+    assert(eventMap.size() == deletionTimeToId.size());
+
 }
 
 }

@@ -39,8 +39,9 @@
 #include <rsb/converter/ConverterSelectionStrategy.h>
 #include <rsb/converter/EventIdConverter.h>
 #include <rsb/converter/PredicateConverterList.h>
-#include <rsb/converter/RegexConverterPredicate.h>
 #include <rsb/converter/SchemaAndByteArrayConverter.h>
+#include <rsb/converter/TypeNameConverterPredicate.h>
+#include <rsb/converter/VoidConverter.h>
 #include <rsb/patterns/Server.h>
 
 #include <rsc/logging/Logger.h>
@@ -61,6 +62,7 @@ using namespace rsbbuffer;
 set<Scope> scopes;
 map<Scope, ListenerPtr> listenersByScope;
 Scope bufferScope;
+boost::uint64_t bufferTimeMuSec = 2000000;
 
 void handleCommandline(int argc, char *argv[]) {
 
@@ -72,7 +74,9 @@ void handleCommandline(int argc, char *argv[]) {
             value<vector<string> >(&scopeNames),
             "Adds a scope to subscribe on.")("bufferscope,b",
             value<string>(&bufferScopeName),
-            "The scope this buffer is available on with its RPC interface.");
+            "The scope this buffer is available on with its RPC interface.")(
+            "time,t", value<boost::uint64_t>(&bufferTimeMuSec),
+            "The time to retain elements in the buffer in musec");
 
     variables_map map;
     store(command_line_parser(argc, argv).options(options).run(), map);
@@ -108,6 +112,9 @@ ParticipantConfig getNoConversionConfig() {
     // set up converters
     list<pair<ConverterPredicatePtr, Converter<string>::Ptr> > converters;
     converters.push_back(
+            make_pair(ConverterPredicatePtr(new TypeNameConverterPredicate(rsc::runtime::typeName<void>())),
+                    Converter<string>::Ptr(new VoidConverter())));
+    converters.push_back(
             make_pair(ConverterPredicatePtr(new AlwaysApplicable()),
                     Converter<string>::Ptr(new SchemaAndByteArrayConverter())));
     ConverterSelectionStrategy<string>::Ptr noConversionSelectionStrategy(
@@ -140,7 +147,7 @@ int main(int argc, char **argv) {
     // configure rsb for no conversion at all
     ParticipantConfig noConversionConfig = getNoConversionConfig();
 
-    BufferPtr buffer(new TimeBoundedBuffer(2000000));
+    BufferPtr buffer(new TimeBoundedBuffer(bufferTimeMuSec));
 
     // set up listeners for the buffer
     for (set<Scope>::const_iterator scopeIt = scopes.begin();
