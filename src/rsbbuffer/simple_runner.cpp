@@ -74,7 +74,7 @@ void handleCommandline(int argc, char *argv[]) {
     if (map.count("help")) {
         cout << "usage: info [OPTIONS]" << endl;
         cout << options << endl;
-        exit(0);
+        exit(EXIT_SUCCESS);
     }
 
     // validity checks

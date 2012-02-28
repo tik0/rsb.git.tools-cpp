@@ -45,11 +45,12 @@ INCLUDE_DIRECTORIES(BEFORE SYSTEM ${RSB_INCLUDE_DIRS})
 # --- source code ---
 
 ADD_SUBDIRECTORY(src)
-ADD_SUBDIRECTORY(test)
+ADD_SUBDIRECTORY(examples)
 ADD_SUBDIRECTORY(3rdparty)
 
 IF(BUILD_TESTS)
     ENABLE_TESTING()
+    ADD_SUBDIRECTORY(test)
 ENDIF()
 
 # --- documentation generation ---
