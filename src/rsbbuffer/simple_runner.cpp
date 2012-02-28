@@ -36,6 +36,11 @@
 #include <rsb/Factory.h>
 #include <rsb/Listener.h>
 #include <rsb/Scope.h>
+#include <rsb/converter/ConverterSelectionStrategy.h>
+#include <rsb/converter/EventIdConverter.h>
+#include <rsb/converter/PredicateConverterList.h>
+#include <rsb/converter/RegexConverterPredicate.h>
+#include <rsb/converter/SchemaAndByteArrayConverter.h>
 #include <rsb/patterns/Server.h>
 
 #include <rsc/logging/Logger.h>
@@ -49,6 +54,7 @@
 using namespace std;
 using namespace boost::program_options;
 using namespace rsb;
+using namespace rsb::converter;
 using namespace rsb::patterns;
 using namespace rsbbuffer;
 
@@ -97,6 +103,33 @@ void handleCommandline(int argc, char *argv[]) {
 
 }
 
+ParticipantConfig getNoConversionConfig() {
+
+    // set up converters
+    list<pair<ConverterPredicatePtr, Converter<string>::Ptr> > converters;
+    converters.push_back(
+            make_pair(ConverterPredicatePtr(new AlwaysApplicable()),
+                    Converter<string>::Ptr(new SchemaAndByteArrayConverter())));
+    ConverterSelectionStrategy<string>::Ptr noConversionSelectionStrategy(
+            new PredicateConverterList<string>(converters.begin(),
+                    converters.end()));
+    // adapt default participant configuration
+    ParticipantConfig config =
+            Factory::getInstance().getDefaultParticipantConfig();
+    set<ParticipantConfig::Transport> transports = config.getTransports();
+    for (set<ParticipantConfig::Transport>::const_iterator it =
+            transports.begin(); it != transports.end(); ++it) {
+        ParticipantConfig::Transport& transport = config.mutableTransport(
+                it->getName());
+        rsc::runtime::Properties options = transport.getOptions();
+        options["converters"] = noConversionSelectionStrategy;
+        transport.setOptions(options);
+    }
+
+    return config;
+
+}
+
 int main(int argc, char **argv) {
 
     handleCommandline(argc, argv);
@@ -104,20 +137,24 @@ int main(int argc, char **argv) {
     rsc::logging::Logger::getLogger("rsbbuffer")->setLevel(
             rsc::logging::Logger::LEVEL_ALL);
 
-    // TODO configure rsb for no conversion at all
+    // configure rsb for no conversion at all
+    ParticipantConfig noConversionConfig = getNoConversionConfig();
 
     BufferPtr buffer(new TimeBoundedBuffer(2000000));
 
     // set up listeners for the buffer
     for (set<Scope>::const_iterator scopeIt = scopes.begin();
             scopeIt != scopes.end(); ++scopeIt) {
-        ListenerPtr listener = Factory::getInstance().createListener(*scopeIt);
+        ListenerPtr listener = Factory::getInstance().createListener(*scopeIt,
+                noConversionConfig);
         listenersByScope[*scopeIt] = listener;
         listener->addHandler(HandlerPtr(new BufferInsertHandler(buffer)), true);
     }
 
     // make buffer available over RPC
-    ServerPtr server = Factory::getInstance().createServer(bufferScope);
+    ServerPtr server = Factory::getInstance().createServer(bufferScope,
+            Factory::getInstance().getDefaultParticipantConfig(),
+            noConversionConfig);
     server->registerMethod("get",
             Server::CallbackPtr(new BufferRequestCallback(buffer)));
 
