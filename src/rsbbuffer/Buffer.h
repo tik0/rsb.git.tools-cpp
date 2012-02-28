@@ -26,6 +26,8 @@
 
 #pragma once
 
+#include <boost/shared_ptr.hpp>
+
 #include <rsb/Event.h>
 
 namespace rsbbuffer {
@@ -42,5 +44,7 @@ public:
     virtual rsb::EventPtr get(const rsb::EventId &id) = 0;
 
 };
+
+typedef boost::shared_ptr<Buffer> BufferPtr;
 
 }

@@ -31,6 +31,8 @@
 #include <boost/cstdint.hpp>
 #include <boost/thread.hpp>
 
+#include <rsc/logging/Logger.h>
+
 #include "Buffer.h"
 
 namespace rsbbuffer {
@@ -41,7 +43,7 @@ namespace rsbbuffer {
 class TimeBoundedBuffer: public Buffer {
 public:
 
-    TimeBoundedBuffer(const boost::uint64_t &delta);
+    TimeBoundedBuffer(const boost::uint64_t &deltaInMuSec);
     virtual ~TimeBoundedBuffer();
 
     void insert(rsb::EventPtr event);
@@ -49,7 +51,9 @@ public:
 
 private:
 
-    boost::uint64_t delta;
+    rsc::logging::LoggerPtr logger;
+
+    boost::uint64_t deltaInMuSec;
 
     boost::recursive_mutex eventMapMutex;
     std::map<rsb::EventId, rsb::EventPtr> eventMap;

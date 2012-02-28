@@ -24,38 +24,19 @@
  *
  * ============================================================ */
 
-#include "TimeBoundedBuffer.h"
-
-#include <rsb/EventId.h>
-
-using namespace std;
+#include "BufferInsertHandler.h"
 
 namespace rsbbuffer {
 
-TimeBoundedBuffer::TimeBoundedBuffer(const boost::uint64_t &deltaInMuSec) :
-        logger(rsc::logging::Logger::getLogger("rsbbuffer.TimeBoundedBuffer")), deltaInMuSec(
-                deltaInMuSec) {
+BufferInsertHandler::BufferInsertHandler(BufferPtr buffer) :
+        buffer(buffer) {
 }
 
-TimeBoundedBuffer::~TimeBoundedBuffer() {
+BufferInsertHandler::~BufferInsertHandler() {
 }
 
-void TimeBoundedBuffer::insert(rsb::EventPtr event) {
-    boost::recursive_mutex::scoped_lock lock(eventMapMutex);
-    RSCTRACE(logger, "Inserting event with ID " << event->getEventId());
-    eventMap.insert(make_pair(event->getEventId(), event));
-    RSCTRACE(logger, "New size: " << eventMap.size());
-}
-
-rsb::EventPtr TimeBoundedBuffer::get(const rsb::EventId &id) {
-    boost::recursive_mutex::scoped_lock lock(eventMapMutex);
-    map<rsb::EventId, rsb::EventPtr>::const_iterator it = eventMap.find(id);
-    if (it != eventMap.end()) {
-        return it->second;
-    } else {
-        return rsb::EventPtr();
-    }
+void BufferInsertHandler::handle(rsb::EventPtr event) {
+    buffer->insert(event);
 }
 
 }
-

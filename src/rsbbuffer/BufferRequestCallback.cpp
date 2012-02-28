@@ -24,38 +24,31 @@
  *
  * ============================================================ */
 
-#include "TimeBoundedBuffer.h"
-
-#include <rsb/EventId.h>
+#include "BufferRequestCallback.h"
 
 using namespace std;
+using namespace rsb;
 
 namespace rsbbuffer {
 
-TimeBoundedBuffer::TimeBoundedBuffer(const boost::uint64_t &deltaInMuSec) :
-        logger(rsc::logging::Logger::getLogger("rsbbuffer.TimeBoundedBuffer")), deltaInMuSec(
-                deltaInMuSec) {
+BufferRequestCallback::BufferRequestCallback(BufferPtr buffer) :
+        buffer(buffer) {
 }
 
-TimeBoundedBuffer::~TimeBoundedBuffer() {
+BufferRequestCallback::~BufferRequestCallback() {
 }
 
-void TimeBoundedBuffer::insert(rsb::EventPtr event) {
-    boost::recursive_mutex::scoped_lock lock(eventMapMutex);
-    RSCTRACE(logger, "Inserting event with ID " << event->getEventId());
-    eventMap.insert(make_pair(event->getEventId(), event));
-    RSCTRACE(logger, "New size: " << eventMap.size());
-}
+AnnotatedData BufferRequestCallback::call(const string& /*methodName*/,
+        boost::shared_ptr<EventId> input) {
 
-rsb::EventPtr TimeBoundedBuffer::get(const rsb::EventId &id) {
-    boost::recursive_mutex::scoped_lock lock(eventMapMutex);
-    map<rsb::EventId, rsb::EventPtr>::const_iterator it = eventMap.find(id);
-    if (it != eventMap.end()) {
-        return it->second;
+    EventPtr event = buffer->get(*input);
+    if (event) {
+        return make_pair(event->getType(), event->getData());
     } else {
-        return rsb::EventPtr();
+        return make_pair(rsc::runtime::typeName(typeid(void)),
+                boost::shared_ptr<void>());
     }
-}
 
 }
 
+}

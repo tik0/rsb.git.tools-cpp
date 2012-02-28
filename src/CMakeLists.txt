@@ -1,8 +1,12 @@
 
 SET(LIB_SOURCES rsbbuffer/Buffer.cpp
+                rsbbuffer/BufferInsertHandler.cpp
+                rsbbuffer/BufferRequestCallback.cpp
                 rsbbuffer/TimeBoundedBuffer.cpp)
 
 SET(LIB_HEADERS rsbbuffer/Buffer.h
+                rsbbuffer/BufferInsertHandler.h
+                rsbbuffer/BufferRequestCallback.h
                 rsbbuffer/TimeBoundedBuffer.h)
 
 ADD_LIBRARY(${RSBBUFFER_LIB_NAME} SHARED ${LIB_SOURCES} ${LIB_HEADERS})

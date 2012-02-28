@@ -25,20 +25,35 @@
  * ============================================================ */
 
 #include <iostream>
+#include <map>
+#include <set>
 #include <string>
-#include <vector>
 
 #include <stdlib.h>
 
 #include <boost/program_options.hpp>
 
+#include <rsb/Factory.h>
+#include <rsb/Listener.h>
 #include <rsb/Scope.h>
+#include <rsb/patterns/Server.h>
+
+#include <rsc/logging/Logger.h>
+#include <rsc/logging/LoggerFactory.h>
+
+#include "Buffer.h"
+#include "BufferInsertHandler.h"
+#include "BufferRequestCallback.h"
+#include "TimeBoundedBuffer.h"
 
 using namespace std;
 using namespace boost::program_options;
 using namespace rsb;
+using namespace rsb::patterns;
+using namespace rsbbuffer;
 
 set<Scope> scopes;
+map<Scope, ListenerPtr> listenersByScope;
 Scope bufferScope;
 
 void handleCommandline(int argc, char *argv[]) {
@@ -51,7 +66,7 @@ void handleCommandline(int argc, char *argv[]) {
             value<vector<string> >(&scopeNames),
             "Adds a scope to subscribe on.")("bufferscope,b",
             value<string>(&bufferScopeName),
-            "The scope this buffer is available on");
+            "The scope this buffer is available on with its RPC interface.");
 
     variables_map map;
     store(command_line_parser(argc, argv).options(options).run(), map);
@@ -86,7 +101,30 @@ int main(int argc, char **argv) {
 
     handleCommandline(argc, argv);
 
-    // indexing structure:
+    rsc::logging::Logger::getLogger("rsbbuffer")->setLevel(
+            rsc::logging::Logger::LEVEL_ALL);
+
+    // TODO configure rsb for no conversion at all
+
+    BufferPtr buffer(new TimeBoundedBuffer(2000000));
+
+    // set up listeners for the buffer
+    for (set<Scope>::const_iterator scopeIt = scopes.begin();
+            scopeIt != scopes.end(); ++scopeIt) {
+        ListenerPtr listener = Factory::getInstance().createListener(*scopeIt);
+        listenersByScope[*scopeIt] = listener;
+        listener->addHandler(HandlerPtr(new BufferInsertHandler(buffer)), true);
+    }
+
+    // make buffer available over RPC
+    ServerPtr server = Factory::getInstance().createServer(bufferScope);
+    server->registerMethod("get",
+            Server::CallbackPtr(new BufferRequestCallback(buffer)));
+
+    // TODO add better sleep logic
+    while (true) {
+        boost::this_thread::sleep(boost::posix_time::seconds(10));
+    }
 
     return EXIT_SUCCESS;
 
