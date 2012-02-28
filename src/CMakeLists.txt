@@ -1,7 +1,9 @@
 
-SET(LIB_SOURCES rsbbuffer/Buffer.cpp)
+SET(LIB_SOURCES rsbbuffer/Buffer.cpp
+                rsbbuffer/TimeBoundedBuffer.cpp)
 
-SET(LIB_HEADERS rsbbuffer/Buffer.h)
+SET(LIB_HEADERS rsbbuffer/Buffer.h
+                rsbbuffer/TimeBoundedBuffer.h)
 
 ADD_LIBRARY(${RSBBUFFER_LIB_NAME} SHARED ${LIB_SOURCES} ${LIB_HEADERS})
 TARGET_LINK_LIBRARIES(${RSBBUFFER_LIB_NAME} ${RSB_LIBRARIES})

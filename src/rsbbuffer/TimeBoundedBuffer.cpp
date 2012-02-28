@@ -24,23 +24,35 @@
  *
  * ============================================================ */
 
-#pragma once
+#include "TimeBoundedBuffer.h"
 
-#include <rsb/Event.h>
+#include <rsb/EventId.h>
+
+using namespace std;
 
 namespace rsbbuffer {
 
-/**
- * @author jwienke
- */
-class Buffer {
-public:
-    Buffer();
-    virtual ~Buffer();
+TimeBoundedBuffer::TimeBoundedBuffer(const boost::uint64_t &delta) :
+        delta(delta) {
+}
 
-    virtual void insert(rsb::EventPtr event) = 0;
-    virtual rsb::EventPtr get(const rsb::EventId &id) = 0;
+TimeBoundedBuffer::~TimeBoundedBuffer() {
+}
 
-};
+void TimeBoundedBuffer::insert(rsb::EventPtr event) {
+    boost::recursive_mutex::scoped_lock lock(eventMapMutex);
+    eventMap.insert(make_pair(event->getEventId(), event));
+}
+
+rsb::EventPtr TimeBoundedBuffer::get(const rsb::EventId &id) {
+    boost::recursive_mutex::scoped_lock lock(eventMapMutex);
+    map<rsb::EventId, rsb::EventPtr>::const_iterator it = eventMap.find(id);
+    if (it != eventMap.end()) {
+        return it->second;
+    } else {
+        return rsb::EventPtr();
+    }
+}
 
 }
+

@@ -86,6 +86,8 @@ int main(int argc, char **argv) {
 
     handleCommandline(argc, argv);
 
+    // indexing structure:
+
     return EXIT_SUCCESS;
 
 }

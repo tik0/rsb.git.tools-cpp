@@ -26,20 +26,33 @@
 
 #pragma once
 
-#include <rsb/Event.h>
+#include <map>
+
+#include <boost/cstdint.hpp>
+#include <boost/thread.hpp>
+
+#include "Buffer.h"
 
 namespace rsbbuffer {
 
 /**
  * @author jwienke
  */
-class Buffer {
+class TimeBoundedBuffer: public Buffer {
 public:
-    Buffer();
-    virtual ~Buffer();
 
-    virtual void insert(rsb::EventPtr event) = 0;
-    virtual rsb::EventPtr get(const rsb::EventId &id) = 0;
+    TimeBoundedBuffer(const boost::uint64_t &delta);
+    virtual ~TimeBoundedBuffer();
+
+    void insert(rsb::EventPtr event);
+    rsb::EventPtr get(const rsb::EventId &id);
+
+private:
+
+    boost::uint64_t delta;
+
+    boost::recursive_mutex eventMapMutex;
+    std::map<rsb::EventId, rsb::EventPtr> eventMap;
 
 };
 
