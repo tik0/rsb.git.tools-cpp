@@ -36,6 +36,13 @@
 #include <rsb/Listener.h>
 #include <rsb/patterns/RemoteServer.h>
 
+#include <rsb/converter/ConverterSelectionStrategy.h>
+#include <rsb/converter/EventIdConverter.h>
+#include <rsb/converter/PredicateConverterList.h>
+#include <rsb/converter/SchemaAndByteArrayConverter.h>
+#include <rsb/converter/TypeNameConverterPredicate.h>
+#include <rsb/converter/VoidConverter.h>
+
 #include <rsc/threading/SimpleTask.h>
 #include <rsc/threading/TaskExecutor.h>
 #include <rsc/threading/ThreadedTaskExecutor.h>
@@ -43,6 +50,7 @@
 using namespace std;
 using namespace boost::program_options;
 using namespace rsb;
+using namespace rsb::converter;
 using namespace rsb::patterns;
 
 string dataScopeName;
@@ -111,6 +119,39 @@ private:
     rsc::threading::TaskExecutorPtr executor;
 };
 
+ParticipantConfig getNoConversionConfig() {
+
+    // set up converters
+    list<pair<ConverterPredicatePtr, Converter<string>::Ptr> > converters;
+    converters.push_back(
+            make_pair(
+                    ConverterPredicatePtr(
+                            new TypeNameConverterPredicate(
+                                    rsc::runtime::typeName<void>())),
+                    Converter<string>::Ptr(new VoidConverter())));
+    converters.push_back(
+            make_pair(ConverterPredicatePtr(new AlwaysApplicable()),
+                    Converter<string>::Ptr(new SchemaAndByteArrayConverter())));
+    ConverterSelectionStrategy<string>::Ptr noConversionSelectionStrategy(
+            new PredicateConverterList<string>(converters.begin(),
+                    converters.end()));
+    // adapt default participant configuration
+    ParticipantConfig config =
+            Factory::getInstance().getDefaultParticipantConfig();
+    set<ParticipantConfig::Transport> transports = config.getTransports();
+    for (set<ParticipantConfig::Transport>::const_iterator it =
+            transports.begin(); it != transports.end(); ++it) {
+        ParticipantConfig::Transport& transport = config.mutableTransport(
+                it->getName());
+        rsc::runtime::Properties options = transport.getOptions();
+        options["converters"] = noConversionSelectionStrategy;
+        transport.setOptions(options);
+    }
+
+    return config;
+
+}
+
 int main(int argc, char **argv) {
 
     options_description options("Allowed options");
@@ -132,10 +173,11 @@ int main(int argc, char **argv) {
 
     // create a remove server for the buffer
     RemoteServerPtr bufferServer = Factory::getInstance().createRemoteServer(
-            bufferScopeName);
+            bufferScopeName, getNoConversionConfig());
 
     // create a listener on the original data
-    ListenerPtr listener = Factory::getInstance().createListener(dataScopeName);
+    ListenerPtr listener = Factory::getInstance().createListener(dataScopeName,
+            getNoConversionConfig());
     listener->addHandler(HandlerPtr(new DelayedRequestingHandler(bufferServer)),
             true);
 
