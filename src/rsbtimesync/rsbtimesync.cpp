@@ -356,13 +356,13 @@ private:
 
 int main(int argc, char **argv) {
 
-#if RSC_VERSION_NUMERIC < 000600
-    rsc::logging::LoggerFactory::getInstance()->reconfigure(
-            rsc::logging::Logger::LEVEL_TRACE);
-#else
-    rsc::logging::LoggerFactory::getInstance().reconfigure(
-            rsc::logging::Logger::LEVEL_TRACE);
-#endif
+//#if RSC_VERSION_NUMERIC < 000600
+//    rsc::logging::LoggerFactory::getInstance()->reconfigure(
+//            rsc::logging::Logger::LEVEL_TRACE);
+//#else
+//    rsc::logging::LoggerFactory::getInstance().reconfigure(
+//            rsc::logging::Logger::LEVEL_TRACE);
+//#endif
 
     registerStrategies();
 
