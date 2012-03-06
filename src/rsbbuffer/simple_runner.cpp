@@ -141,8 +141,8 @@ int main(int argc, char **argv) {
 
     handleCommandline(argc, argv);
 
-    rsc::logging::Logger::getLogger("rsbbuffer")->setLevel(
-            rsc::logging::Logger::LEVEL_ALL);
+//    rsc::logging::Logger::getLogger("rsbbuffer")->setLevel(
+//            rsc::logging::Logger::LEVEL_ALL);
 
     // configure rsb for no conversion at all
     ParticipantConfig noConversionConfig = getNoConversionConfig();
