@@ -37,6 +37,8 @@ SET(RSBBUFFER_BIN_NAME "rsb-buffer")
 
 INCLUDE(PedanticCompilerWarnings)
 
+SET(CMAKE_INSTALL_RPATH "\$ORIGIN/../lib:\$ORIGIN/")
+
 # --- dependency handling ---
 
 FIND_PACKAGE(RSB 0.6 REQUIRED)
