@@ -149,7 +149,7 @@ MonitorEventFormatter::MonitorEventFormatter(ostream &stream,
     stream(stream), printFrequency(printFrequency) {
 
     QuantitiesMap quantities;
-    quantities.push_back(make_pair(" Latency", QuantityPtr(new Latency())));
+    quantities.push_back(make_pair(" Latency (us)", QuantityPtr(new Latency())));
     quantities.push_back(make_pair(" Rate", QuantityPtr(new Rate())));
 
     this->scopes.insert(make_pair(Scope("/"), quantities));
@@ -186,7 +186,7 @@ void MonitorEventFormatter::format(ostream &/*stream*/, EventPtr event) {
 
             QuantitiesMap quantities;
             quantities.push_back(
-                    make_pair("| Latency", QuantityPtr(new Latency())));
+                    make_pair("| Latency (us)", QuantityPtr(new Latency())));
             quantities.push_back(make_pair(" Rate", QuantityPtr(new Rate())));
 
             this->scopes.insert(make_pair(*sscps, quantities));
