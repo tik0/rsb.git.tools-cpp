@@ -10,12 +10,6 @@ OPTION(OPTION_BUILD_TESTS "Whether to build the tests or not" TRUE)
 SET(LIBRARY_NAME "rsbts")
 SET(BINARY_NAME "rsb_timesync")
 
-SET(GTEST_DIR "${CMAKE_SOURCE_DIR}/3rdparty/gmock/gtest")
-SET(GTEST_INCLUDE_DIR "${GTEST_DIR}/include")
-SET(GMOCK_DIR "${CMAKE_SOURCE_DIR}/3rdparty/gmock")
-SET(GMOCK_INCLUDE_DIR "${GMOCK_DIR}/include")
-SET(GMOCK_LIBRARY_NAME "gmock")
-
 # --- dependencies ---
 
 FIND_PACKAGE(RSC REQUIRED)
@@ -39,10 +33,14 @@ ADD_DEFINITIONS(${RSB_PROTOCOL_CFLAGS})
 
 SET(CMAKE_MODULE_PATH ${CMAKE_MODUKE_PATH} ${RSC_CMAKE_MODULE_PATH})
 
-ADD_SUBDIRECTORY(3rdparty)
 ADD_SUBDIRECTORY(src)
 IF(OPTION_BUILD_TESTS)
-    ADD_SUBDIRECTORY(test)
+    INCLUDE(ProvideGoogleMock)
+    IF(GMOCK_AVAILABLE)
+        ADD_SUBDIRECTORY(test)
+    ELSE()
+        MESSAGE(WARNING "Could not build unit tests even though desired because Google Mock could not be installed.")
+    ENDIF()
 ENDIF()
 ENABLE_TESTING()
 IF(OPTION_BUILD_EXAMPLES) # AND SPREAD_EXECUTABLE)
