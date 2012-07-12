@@ -62,7 +62,14 @@ MESSAGE(STATUS "RSB libraries: ${RSB_LIBRARIES}")
 MESSAGE(STATUS "RSB runtime library dirs: ${RSB_RUNTIME_LIBRARY_DIRS}")
 MESSAGE(STATUS "RSB CMake module path: ${RSB_CMAKE_MODULE_PATH}")
 
-INCLUDE_DIRECTORIES(BEFORE SYSTEM ${Boost_INCLUDE_DIRS} ${BOOSTUUID_INCLUDE_DIRS} ${PROTOBUF_INCLUDE_DIRS} ${RSC_INCLUDE_DIRS} ${RSB_INCLUDE_DIRS})
+ADD_DEFINITIONS(${RSB_PROTOCOL_CFLAGS})
+
+INCLUDE_DIRECTORIES(BEFORE SYSTEM ${Boost_INCLUDE_DIRS}
+                                  ${BOOSTUUID_INCLUDE_DIRS}
+                                  ${PROTOBUF_INCLUDE_DIRS}
+                                  ${RSC_INCLUDE_DIRS}
+                                  ${RSB_INCLUDE_DIRS}
+                                  ${RST_INCLUDE_DIRS})
 LINK_DIRECTORIES(${Boost_LIBRARY_DIRS})
 
 # Tools in sub-directories
@@ -73,6 +80,7 @@ SET(VERSION_SUFFIX "${RSB_TOOLS_VERSION_MAJOR}.${RSB_TOOLS_VERSION_MINOR}")
 SET(BINARY_PREFIX  "rsb-") # used by install rule in subdirs
 SET(BINARY_SUFFIX "cpp${VERSION_SUFFIX}")
 ADD_SUBDIRECTORY(logger)
+ADD_SUBDIRECTORY(timesync)
 
 # Packaging
 SET(CPACK_PACKAGE_VERSION_MAJOR ${RSB_TOOLS_VERSION_MAJOR})
@@ -94,7 +102,7 @@ IF(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         SET(PRERM_SCRIPT    "${CMAKE_CURRENT_BINARY_DIR}/prerm")
         FILE(WRITE "${POSTINST_SCRIPT}" "#!/bin/sh\n\n")
         FILE(WRITE "${PRERM_SCRIPT}"    "#!/bin/sh\n\n")
-        FOREACH(NAME "logger")
+        FOREACH(NAME "logger" "timesync")
             FILE(APPEND "${POSTINST_SCRIPT}"
                         "update-alternatives --install                      \\
                            /usr/bin/${BINARY_PREFIX}${NAME}                 \\
