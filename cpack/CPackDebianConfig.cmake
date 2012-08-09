@@ -18,9 +18,9 @@ ENDIF()
 # Actual packaging options
 
 SET(PACKAGE_BASE_NAME     "rsb-tools-${BINARY_SUFFIX}")
-SET(CPACK_PACKAGE_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
+SET(CPACK_PACKAGE_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}${CPACK_PACKAGE_REVISION}")
 
-SET(CPACK_PACKAGE_FILE_NAME     "${PACKAGE_BASE_NAME}-${CPACK_PACKAGE_VERSION}_${LSB_CODENAME}_${LSB_PROCESSOR_ARCH}")
+SET(CPACK_PACKAGE_FILE_NAME     "${PACKAGE_BASE_NAME}-${CPACK_PACKAGE_VERSION}${CPACK_PACKAGE_REVISION}_${LSB_PROCESSOR_ARCH}")
 SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/COPYING.txt")
 
 # Generate postinst and prerm hooks
@@ -29,16 +29,16 @@ SET(PRERM_SCRIPT    "${CMAKE_CURRENT_BINARY_DIR}/prerm")
 FILE(WRITE "${POSTINST_SCRIPT}" "#!/bin/sh\n\nset -e\n")
 FILE(WRITE "${PRERM_SCRIPT}"    "#!/bin/sh\n\nset -e\n")
 FOREACH(NAME "logger" "timesync")
-FILE(APPEND "${POSTINST_SCRIPT}"
-            "update-alternatives --install                      \\
-               /usr/bin/${BINARY_PREFIX}${NAME}                 \\
-               ${BINARY_PREFIX}${NAME}                          \\
-               /usr/bin/${BINARY_PREFIX}${NAME}${BINARY_SUFFIX} \\
-               80\n\n")
-FILE(APPEND "${PRERM_SCRIPT}"
-            "update-alternatives --remove                           \\
-               ${BINARY_PREFIX}${NAME}                              \\
-               /usr/bin/${BINARY_PREFIX}${NAME}${BINARY_SUFFIX}\n\n")
+    FILE(APPEND "${POSTINST_SCRIPT}"
+                "update-alternatives --install                      \\
+                   /usr/bin/${BINARY_PREFIX}${NAME}                 \\
+                   ${BINARY_PREFIX}${NAME}                          \\
+                   /usr/bin/${BINARY_PREFIX}${NAME}${BINARY_SUFFIX} \\
+                   80\n\n")
+    FILE(APPEND "${PRERM_SCRIPT}"
+                "update-alternatives --remove                           \\
+                   ${BINARY_PREFIX}${NAME}                              \\
+                   /usr/bin/${BINARY_PREFIX}${NAME}${BINARY_SUFFIX}\n\n")
 ENDFOREACH()
 EXECUTE_PROCESS(COMMAND "chmod +x ${POSTINST_SCRIPT} ${PRERM_SCRIPT}")
 
