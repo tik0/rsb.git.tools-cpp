@@ -40,8 +40,6 @@
 #include <rsb/converter/TypeNameConverterPredicate.h>
 #include <rsb/converter/StringConverter.h>
 
-#include <rsc/logging/LoggerFactory.h>
-
 #include "EventFormatter.h"
 #include "PayloadFormatter.h"
 
@@ -64,10 +62,6 @@ public:
 
     void handle(EventPtr event) {
         this->formatter->format(std::cout, event);
-    }
-
-    string getClassName() const {
-    return "FormattingHandler";
     }
 private:
     EventFormatterPtr formatter;
@@ -170,9 +164,6 @@ void handleSIGINT(int /*signal*/) {
 }
 
 int main(int argc, char* argv[]) {
-
-//    rsc::logging::LoggerFactory::getInstance().reconfigure(rsc::logging::Logger::LEVEL_TRACE);
-
     // Handle commandline arguments.
     try {
         if (handleCommandline(argc, argv)) {

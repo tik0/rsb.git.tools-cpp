@@ -3,6 +3,7 @@
  * This file is a part of RSB project
  *
  * Copyright (C) 2010 by Johannes Wienke <jwienke at techfak dot uni-bielefeld dot de>
+ * Copyright (C) 2012 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This program is free software; you can redistribute it
  * and/or modify it under the terms of the GNU General
@@ -25,40 +26,25 @@
 
 #include <boost/thread.hpp>
 
-#include <rsc/logging/LoggerFactory.h>
 #include <rsc/subprocess/Subprocess.h>
-#include <rsc/RSCVersion.h>
 
 #include "testconfig.h"
 
-inline void setupLogging() {
-
-#if RSC_VERSION_NUMERIC < 000600
-    rsc::logging::LoggerFactory::getInstance()->reconfigure(
-            rsc::logging::Logger::LEVEL_TRACE);
-#else
-    rsc::logging::LoggerFactory::getInstance().reconfigure(
-                rsc::logging::Logger::LEVEL_TRACE);
-#endif
-
-}
-
 inline rsc::subprocess::SubprocessPtr startSpread() {
-	std::vector<std::string> spreadArgs;
-	spreadArgs.push_back("-n");
-	spreadArgs.push_back("localhost");
-	spreadArgs.push_back("-c");
-	spreadArgs.push_back(SPREAD_CONFIG_FILE);
-	std::cout << "Calling " << SPREAD_EXECUTABLE << " with args:";
-	for (std::vector<std::string>::iterator it = spreadArgs.begin(); it
-			!= spreadArgs.end(); ++it) {
-		std::cout << *it << ", ";
-	}
-	std::cout << std::endl;
-	rsc::subprocess::SubprocessPtr proc =
-			rsc::subprocess::Subprocess::newInstance(SPREAD_EXECUTABLE,
-					spreadArgs);
-	boost::this_thread::sleep(boost::posix_time::seconds(2));
-	return proc;
+    std::vector<std::string> spreadArgs;
+    spreadArgs.push_back("-n");
+    spreadArgs.push_back("localhost");
+    spreadArgs.push_back("-c");
+    spreadArgs.push_back(SPREAD_CONFIG_FILE);
+    std::cout << "Calling " << SPREAD_EXECUTABLE << " with args:";
+    for (std::vector<std::string>::iterator it = spreadArgs.begin(); it
+             != spreadArgs.end(); ++it) {
+        std::cout << *it << ", ";
+    }
+    std::cout << std::endl;
+    rsc::subprocess::SubprocessPtr proc =
+        rsc::subprocess::Subprocess::newInstance(SPREAD_EXECUTABLE,
+                                                 spreadArgs);
+    boost::this_thread::sleep(boost::posix_time::seconds(2));
+    return proc;
 }
-

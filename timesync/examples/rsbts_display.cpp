@@ -3,6 +3,7 @@
  * This file is a part of the RSBTimeSync project.
  *
  * Copyright (C) 2011 by Johannes Wienke <jwienke at techfak dot uni-bielefeld dot de>
+ * Copyright (C) 2012 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This program is free software; you can redistribute it
  * and/or modify it under the terms of the GNU General
@@ -23,10 +24,6 @@
 
 #include <boost/program_options.hpp>
 
-#include <rsc/logging/Logger.h>
-#include <rsc/logging/LoggerFactory.h>
-#include <rsc/RSCVersion.h>
-
 #include <rsb/Event.h>
 #include <rsb/EventCollections.h>
 #include <rsb/EventQueuePushHandler.h>
@@ -45,9 +42,6 @@ const char *OPTION_HELP = "help";
 const char *OPTION_SCOPE = "scope";
 
 Scope scope;
-
-rsc::logging::LoggerPtr logger = rsc::logging::Logger::getLogger(
-        "rsbtimesync.display");
 
 boost::shared_ptr<rsc::threading::SynchronizedQueue<EventPtr> > eventQueue(
         new rsc::threading::SynchronizedQueue<EventPtr>);
@@ -89,17 +83,7 @@ bool parseOptions(int argc, char **argv) {
 }
 
 int main(int argc, char **argv) {
-
-#if RSC_VERSION_NUMERIC < 000600
-    rsc::logging::LoggerFactory::getInstance()->reconfigure(
-            rsc::logging::Logger::LEVEL_TRACE);
-#else
-    rsc::logging::LoggerFactory::getInstance().reconfigure(
-                rsc::logging::Logger::LEVEL_TRACE);
-#endif
-
-    bool parsed = parseOptions(argc, argv);
-    if (!parsed) {
+    if (!parseOptions(argc, argv)) {
         cerr << "Error parsing arguments. Terminating." << endl;
         return EXIT_FAILURE;
     }
@@ -108,7 +92,7 @@ int main(int argc, char **argv) {
     Factory::getInstance();
 
     // register converter
-    stringConverterRepository()->registerConverter(
+    converterRepository<string>()->registerConverter(
             Converter<string>::Ptr(new EventsByScopeMapConverter));
 
     ListenerPtr listener = Factory::getInstance().createListener(scope);
