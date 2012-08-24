@@ -3,6 +3,7 @@
  * This file is a part of RSBTimeSync project
  *
  * Copyright (C) 2011 by Johannes Wienke <jwienke at techfak dot uni-bielefeld dot de>
+ * Copyright (C) 2012 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This program is free software; you can redistribute it
  * and/or modify it under the terms of the GNU General
@@ -19,8 +20,6 @@
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-
-#include <rsc/logging/LoggerFactory.h>
 
 #include <rsb/converter/converters.h>
 
@@ -47,7 +46,6 @@ private:
 int main(int argc, char* argv[]) {
 
     srand(time(NULL));
-    setupLogging();
     rsb::converter::registerDefaultConverters();
 
     //::testing::AddGlobalTestEnvironment(new SpreadEnvironment);

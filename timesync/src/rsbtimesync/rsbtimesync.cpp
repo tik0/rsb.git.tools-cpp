@@ -3,6 +3,7 @@
  * This file is a part of the RSB TimeSync project.
  *
  * Copyright (C) 2011 by Johannes Wienke <jwienke at techfak dot uni-bielefeld dot de>
+ * Copyright (C) 2012 Jan Moringen <jmoringe@techfak.dot uni-bielefeld.de>
  *
  * This program is free software; you can redistribute it
  * and/or modify it under the terms of the GNU General
@@ -27,6 +28,9 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/program_options.hpp>
 
+#include <rsc/runtime/ContainerIO.h>
+#include <rsc/threading/SynchronizedQueue.h>
+
 #include <rsb/EventQueuePushHandler.h>
 #include <rsb/Factory.h>
 #include <rsb/Listener.h>
@@ -37,12 +41,6 @@
 #include <rsb/converter/PredicateConverterList.h>
 #include <rsb/converter/SchemaAndByteArrayConverter.h>
 #include <rsb/EventCollections.h>
-
-#include <rsc/logging/Logger.h>
-#include <rsc/logging/LoggerFactory.h>
-#include <rsc/runtime/ContainerIO.h>
-#include <rsc/threading/SynchronizedQueue.h>
-#include <rsc/RSCVersion.h>
 
 #include "ApproximateTimeStrategy.h"
 #include "FirstMatchStrategy.h"
@@ -355,15 +353,6 @@ private:
 };
 
 int main(int argc, char **argv) {
-
-//#if RSC_VERSION_NUMERIC < 000600
-//    rsc::logging::LoggerFactory::getInstance()->reconfigure(
-//            rsc::logging::Logger::LEVEL_TRACE);
-//#else
-//    rsc::logging::LoggerFactory::getInstance().reconfigure(
-//            rsc::logging::Logger::LEVEL_TRACE);
-//#endif
-
     registerStrategies();
 
     bool parsed = parseOptions(argc, argv);
