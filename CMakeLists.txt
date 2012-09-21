@@ -14,12 +14,6 @@ SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 OPTION(OPTION_BUILD_EXAMPLES "Whether to build the examples or not" TRUE)
 OPTION(OPTION_BUILD_TESTS "Whether to build the tests or not" TRUE)
 
-IF(NOT CMAKE_BUILD_TYPE)
-    SET(CMAKE_BUILD_TYPE Debug CACHE STRING
-        "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
-        FORCE)
-ENDIF()
-
 # Dependencies
 
 SET(Boost_USE_VERSION 1.38 CACHE INTERNAL "Boost Version to use")
