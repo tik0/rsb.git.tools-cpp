@@ -23,10 +23,7 @@ SET(RSB_TOOLS_ABI_VERSION "2")
 
 # RSB dependencies
 # May depend on updated CMake module path.
-FIND_PACKAGE(RSB REQUIRED)
-MESSAGE(STATUS "RSB Version: ${RSB_VERSION}")
-MESSAGE(STATUS "RSB libraries: ${RSB_LIBRARIES}")
-MESSAGE(STATUS "RSB runtime library dirs: ${RSB_RUNTIME_LIBRARY_DIRS}")
+FIND_PACKAGE(RSB "${VERSION_MAJOR}.${VERSION_MINOR}" REQUIRED)
 
 LIST(INSERT CMAKE_MODULE_PATH 0 ${RSC_CMAKE_MODULE_PATH})
 
@@ -38,6 +35,7 @@ INCLUDE(GenerateDoxygen)
 INCLUDE(GenerateCppcheck)
 INCLUDE(DefineProjectVersion)
 INCLUDE(CurrentDate)
+INCLUDE(InstallFilesRecursive)
 
 # finally we can deduce the real project version with the RSC macros
 DEFINE_PROJECT_VERSION(RSB_TOOLS_ ${VERSION_MAJOR} ${VERSION_MINOR} 0 "archive")
@@ -60,12 +58,44 @@ IF(OPTION_BUILD_TESTS)
 ENDIF()
 
 # Tools in sub-directories
+
+SET(BUFFER_LIBRARY_NAME rsbbuffer)
+SET(BUFFER_BINARY_NAME buffer)
+
+SET(LOGGER_BINARY_NAME "logger")
+
+SET(TIMESYNC_LIBRARY_NAME "rsbts")
+SET(TIMESYNC_BINARY_NAME "timesync")
+
 SET(BINARY_PREFIX  "rsb-") # used by install rule in subdirs
 SET(BINARY_SUFFIX "cpp${VERSION_SUFFIX}")
 
-ADD_SUBDIRECTORY(buffers)
-ADD_SUBDIRECTORY(logger)
-ADD_SUBDIRECTORY(timesync)
+ADD_SUBDIRECTORY(src)
+IF(OPTION_BUILD_EXAMPLES)
+    ADD_SUBDIRECTORY(examples)
+ENDIF()
+IF(OPTION_BUILD_TESTS AND GMOCK_AVAILABLE)
+    ADD_SUBDIRECTORY(test)
+ENDIF()
+
+# --- documentation generation ---
+
+GENERATE_DOXYGEN(VERSION "${RSB_TOOLS_VERSION_MAJOR}.${RSB_TOOLS_VERSION_MINOR}.${RSB_TOOLS_VERSION_PATCH}")
+
+# --- coverage ---
+
+#ENABLE_COVERAGE_REPORT(TARGETS ${RSBBUFFER_LIB_NAME} TESTS ${RSC_TEST_NAME} FILTER "*3rdparty*" "*test/*")
+
+# --- sloccount ---
+
+ENABLE_SLOCCOUNT(FOLDERS src)
+
+# --- cppcheck ---
+
+GENERATE_CPPCHECK(SOURCES src test examples
+                          "${CMAKE_CURRENT_BINARY_DIR}/src" "${CMAKE_CURRENT_BINARY_DIR}/test" "${CMAKE_CURRENT_BINARY_DIR}/examples"
+                  ENABLE_IDS style
+                  INLINE_SUPPRESSION)
 
 # Packaging
 

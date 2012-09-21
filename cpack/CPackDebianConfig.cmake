@@ -28,7 +28,7 @@ SET(POSTINST_SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/postinst")
 SET(PRERM_SCRIPT    "${CMAKE_CURRENT_BINARY_DIR}/prerm")
 FILE(WRITE "${POSTINST_SCRIPT}" "#!/bin/sh\n\nset -e\n")
 FILE(WRITE "${PRERM_SCRIPT}"    "#!/bin/sh\n\nset -e\n")
-FOREACH(NAME "logger" "timesync" "buffer")
+FOREACH(NAME ${LOGGER_BINARY_NAME} ${TIMESYNC_BINARY_NAME} ${BUFFER_BINARY_NAME})
     FILE(APPEND "${POSTINST_SCRIPT}"
                 "update-alternatives --install                      \\
                    /usr/bin/${BINARY_PREFIX}${NAME}                 \\

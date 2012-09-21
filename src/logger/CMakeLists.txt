@@ -16,15 +16,15 @@ IF(Boost_VERSION LESS 103801)
     LIST(REMOVE_ITEM LOGGER_HEADERS "MonitorEventFormatter.h")
 ENDIF()
 
-ADD_EXECUTABLE(logger ${LOGGER_SOURCES} ${LOGGER_HEADERS})
+ADD_EXECUTABLE(${LOGGER_BINARY_NAME} ${LOGGER_SOURCES} ${LOGGER_HEADERS})
 
-TARGET_LINK_LIBRARIES(logger ${RSC_LIBRARIES}
-                             ${RSB_LIBRARIES}
-                             ${Boost_LIBRARIES}
-                             ${PROTOBUF_LIBRARIES})
+TARGET_LINK_LIBRARIES(${LOGGER_BINARY_NAME} ${RSC_LIBRARIES}
+                                            ${RSB_LIBRARIES}
+                                            ${Boost_LIBRARIES}
+                                            ${PROTOBUF_LIBRARIES})
 
 # Install target
 
-INSTALL(PROGRAMS    "${CMAKE_CURRENT_BINARY_DIR}/logger"
+INSTALL(PROGRAMS    "${CMAKE_CURRENT_BINARY_DIR}/${LOGGER_BINARY_NAME}"
         DESTINATION "bin"
         RENAME      "${BINARY_PREFIX}logger${BINARY_SUFFIX}")

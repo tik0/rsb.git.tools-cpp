@@ -16,15 +16,14 @@ ENDIF()
 CONFIGURE_FILE(spread.conf.in ${SPREAD_CONFIG_FILE} @ONLY)
 CONFIGURE_FILE(testconfig.h.in ${CMAKE_CURRENT_BINARY_DIR}/testconfig.h)
 
-INCLUDE_DIRECTORIES(BEFORE ../src
-                           ${CMAKE_CURRENT_BINARY_DIR}
-                           ${CMAKE_CURRENT_BINARY_DIR}/../src
+INCLUDE_DIRECTORIES(BEFORE ${CMAKE_CURRENT_BINARY_DIR}
+                           "${CMAKE_SOURCE_DIR}/src/timesync"
                            ${GMOCK_INCLUDE_DIRS})
 
 ADD_EXECUTABLE(rsbtimesynctest rsbtimesync/rsbtimesynctest.cpp
                                rsbtimesync/ApproximateTimeStrategyTest.cpp)
 
-TARGET_LINK_LIBRARIES(rsbtimesynctest ${LIBRARY_NAME}
+TARGET_LINK_LIBRARIES(rsbtimesynctest ${TIMESYNC_LIBRARY_NAME}
                                       ${GMOCK_LIBRARIES})
                                       
 ADD_TEST(rsbtimesynctest rsbtimesynctest "--gtest_output=xml:${TEST_RESULT_DIR}/")
