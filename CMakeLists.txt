@@ -11,6 +11,9 @@ PROJECT("rsb-tools-cpp")
 
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
+OPTION(OPTION_BUILD_EXAMPLES "Whether to build the examples or not" TRUE)
+OPTION(OPTION_BUILD_TESTS "Whether to build the tests or not" TRUE)
+
 IF(NOT CMAKE_BUILD_TYPE)
     SET(CMAKE_BUILD_TYPE Debug CACHE STRING
         "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
@@ -44,6 +47,10 @@ MESSAGE(STATUS "Using CMake module path: ${CMAKE_MODULE_PATH}")
 
 # Provided by RSC.
 INCLUDE(PedanticCompilerWarnings)
+INCLUDE(GenerateDoxygen)
+INCLUDE(EnableSlocCount)
+INCLUDE(GenerateDoxygen)
+INCLUDE(GenerateCppcheck)
 
 FIND_PACKAGE(ProtocolBuffers REQUIRED)
 IF(NOT PROTOBUF_FOUND)
@@ -73,6 +80,14 @@ INCLUDE_DIRECTORIES(BEFORE SYSTEM ${Boost_INCLUDE_DIRS}
                                   ${RST_INCLUDE_DIRS})
 LINK_DIRECTORIES(${Boost_LIBRARY_DIRS})
 
+IF(OPTION_BUILD_TESTS)
+    ENABLE_TESTING()
+    INCLUDE(ProvideGoogleMock)
+    IF(NOT GMOCK_AVAILABLE)
+        MESSAGE(WARNING "Could not build unit tests even though desired because Google Mock could not be installed.")
+    ENDIF()
+ENDIF()
+
 # Tools in sub-directories
 SET(RSB_TOOLS_VERSION_MAJOR ${RSB_VERSION_MAJOR})
 SET(RSB_TOOLS_VERSION_MINOR ${RSB_VERSION_MINOR})
@@ -80,6 +95,8 @@ SET(RSB_TOOLS_VERSION_PATCH ${RSB_VERSION_PATCH})
 SET(VERSION_SUFFIX "${RSB_TOOLS_VERSION_MAJOR}.${RSB_TOOLS_VERSION_MINOR}")
 SET(BINARY_PREFIX  "rsb-") # used by install rule in subdirs
 SET(BINARY_SUFFIX "cpp${VERSION_SUFFIX}")
+
+ADD_SUBDIRECTORY(buffers)
 ADD_SUBDIRECTORY(logger)
 ADD_SUBDIRECTORY(timesync)
 

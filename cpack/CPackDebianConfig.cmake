@@ -28,7 +28,7 @@ SET(POSTINST_SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/postinst")
 SET(PRERM_SCRIPT    "${CMAKE_CURRENT_BINARY_DIR}/prerm")
 FILE(WRITE "${POSTINST_SCRIPT}" "#!/bin/sh\n\nset -e\n")
 FILE(WRITE "${PRERM_SCRIPT}"    "#!/bin/sh\n\nset -e\n")
-FOREACH(NAME "logger" "timesync")
+FOREACH(NAME "logger" "timesync" "buffer")
     FILE(APPEND "${POSTINST_SCRIPT}"
                 "update-alternatives --install                      \\
                    /usr/bin/${BINARY_PREFIX}${NAME}                 \\
@@ -49,7 +49,8 @@ SET(CPACK_DEBIAN_PACKAGE_MAINTAINER  "Jan Moringen <jmoringe@techfak.uni-bielefe
 SET(CPACK_DEBIAN_PACKAGE_DESCRIPTION "Tools for the Robotics Service Bus (C++ implementation)
  Currently consists of
   * logger: console program for displaying RSB events in real-time
-  * timesync: program for temporal synchronization of RSB events")
+  * timesync: program for temporal synchronization of RSB events
+  * buffers: utility to preserve and access a short-term history of events")
 SET(CPACK_DEBIAN_PACKAGE_PRIORITY    "optional")
 SET(CPACK_DEBIAN_PACKAGE_SECTION     "devel")
 SET(CPACK_DEBIAN_ARCHITECTURE        "${CMAKE_SYSTEM_PROCESSOR}")

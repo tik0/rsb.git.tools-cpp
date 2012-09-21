@@ -1,61 +1,25 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
-SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS TRUE)
-
-PROJECT("rsb-buffer")
-
-FIND_PACKAGE(RSC REQUIRED)
-LIST(INSERT CMAKE_MODULE_PATH 0 ${RSC_CMAKE_MODULE_PATH})
-
-INCLUDE(InstallFilesRecursive)
-INCLUDE(EnableCoverageReport)
-INCLUDE(EnableSlocCount)
-INCLUDE(GenerateDoxygen)
-INCLUDE(GenerateCppcheck)
-
-# --- user options ---
-
-OPTION(BUILD_TESTS "Decide if the test suite shall be built or not" ON)
 
 # --- global definitions ---
 
-# version information
-SET(RSBBUFFER_VERSION_MAJOR "0")
-SET(RSBBUFFER_VERSION_MINOR "1")
-SET(RSBBUFFER_VERSION_PATCH "0")
-SET(RSBBUFFER_VERSION "${RSBBUFFER_VERSION_MAJOR}.${RSBBUFFER_VERSION_MINOR}.${RSBBUFFER_VERSION_PATCH}")
-
 SET(RSBBUFFER_LIB_NAME "rsbbuffer")
-SET(RSBBUFFER_BIN_NAME "rsb-buffer")
-
-# --- global compiler flags ---
-
-INCLUDE(PedanticCompilerWarnings)
-
-SET(CMAKE_INSTALL_RPATH "\$ORIGIN/../lib:\$ORIGIN/")
-
-# --- dependency handling ---
-
-FIND_PACKAGE(RSB 0.6 REQUIRED)
-INCLUDE_DIRECTORIES(BEFORE SYSTEM ${RSB_INCLUDE_DIRS})
+SET(RSBBUFFER_BIN_NAME "buffer")
 
 # --- source code ---
 
 ADD_SUBDIRECTORY(src)
-ADD_SUBDIRECTORY(examples)
+
+IF(OPTION_BUILD_EXAMPLES)
+    ADD_SUBDIRECTORY(examples)
+ENDIF()
 
 ENABLE_TESTING()
-IF(BUILD_TESTS)
-    INCLUDE(ProvideGoogleMock)
-    IF(GMOCK_AVAILABLE)
-        ADD_SUBDIRECTORY(test)
-    ELSE()
-        MESSAGE(WARNING "Could not build unit tests even though desired because Google Mock could not be installed.")
-    ENDIF()
+IF(OPTION_BUILD_TESTS AND GMOCK_AVAILABLE)
+    ADD_SUBDIRECTORY(test)
 ENDIF()
 
 # --- documentation generation ---
 
-GENERATE_DOXYGEN(VERSION "${RSBBUFFER_VERSION}")
+GENERATE_DOXYGEN(VERSION "${RSB_TOOLS_VERSION_MAJOR}.${RSB_TOOLS_VERSION_MINOR}.${RSB_TOOLS_VERSION_PATCH}")
 
 # --- coverage ---
 
