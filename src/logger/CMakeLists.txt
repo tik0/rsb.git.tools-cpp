@@ -2,8 +2,8 @@
 
 # Logger binary
 
-FILE(GLOB LOGGER_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.cpp")
-FILE(GLOB LOGGER_HEADERS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.h")
+FILE(GLOB_RECURSE LOGGER_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.cpp")
+FILE(GLOB_RECURSE LOGGER_HEADERS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.h")
 
 # There is a bug in boost 1.38, which prevents the stats formatter from working.
 # Hence we remove it here if this version is used
