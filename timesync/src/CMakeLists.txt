@@ -24,6 +24,9 @@ ADD_LIBRARY(${LIBRARY_NAME} SHARED ${RSBTS_SOURCES} ${RSBTS_HEADERS})
 TARGET_LINK_LIBRARIES(${LIBRARY_NAME} ${RSB_LIBRARIES}
                                       ${RST_LIBRARIES}
                                       ${Boost_LIBRARIES})
+SET_TARGET_PROPERTIES(${LIBRARY_NAME}
+                      PROPERTIES
+                      VERSION ${SO_VERSION})
 
 ADD_EXECUTABLE(${BINARY_NAME} rsbtimesync/rsbtimesync.cpp)
 TARGET_LINK_LIBRARIES(${BINARY_NAME} ${LIBRARY_NAME})
