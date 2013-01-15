@@ -16,7 +16,7 @@ OPTION(OPTION_BUILD_TESTS "Whether to build the tests or not" TRUE)
 
 # default version information
 SET(VERSION_MAJOR   "0" CACHE STRING "Major project version part")
-SET(VERSION_MINOR   "8" CACHE STRING "Minor project version part")
+SET(VERSION_MINOR   "9" CACHE STRING "Minor project version part")
 SET(RSB_TOOLS_ABI_VERSION "2")
 
 # Dependencies
