@@ -26,26 +26,28 @@
 
 #pragma once
 
-#include <rsb/Handler.h>
+#include <rsb/EventId.h>
+#include <rsb/patterns/Server.h>
 
 #include "Buffer.h"
 
 namespace rsb {
 namespace tools {
-namespace buffer {
+namespace simplebuffer {
 
 /**
  * @author jwienke
  */
-class BufferInsertHandler: public rsb::Handler {
+class BufferRequestCallback: public rsb::patterns::Server::AnyReplyTypeCallback<
+        rsb::EventId> {
 public:
-    BufferInsertHandler(BufferPtr buffer);
-    virtual ~BufferInsertHandler();
+    BufferRequestCallback(BufferPtr buffer);
+    virtual ~BufferRequestCallback();
 
-    void handle(rsb::EventPtr event);
+    rsb::AnnotatedData call(const std::string& methodName,
+            boost::shared_ptr<rsb::EventId> input);
 
 private:
-
     BufferPtr buffer;
 
 };

@@ -57,7 +57,7 @@ using namespace boost::program_options;
 using namespace rsb;
 using namespace rsb::converter;
 using namespace rsb::patterns;
-using namespace rsb::tools::buffer;
+using namespace rsb::tools::simplebuffer;
 
 set<Scope> scopes;
 map<Scope, ListenerPtr> listenersByScope;

@@ -24,30 +24,17 @@
  *
  * ============================================================ */
 
-#pragma once
-
-#include <boost/shared_ptr.hpp>
-
-#include <rsb/Event.h>
+#include "Buffer.h"
 
 namespace rsb {
 namespace tools {
-namespace buffer {
+namespace simplebuffer {
 
-/**
- * @author jwienke
- */
-class Buffer {
-public:
-    Buffer();
-    virtual ~Buffer();
+Buffer::Buffer() {
+}
 
-    virtual void insert(rsb::EventPtr event) = 0;
-    virtual rsb::EventPtr get(const rsb::EventId &id) = 0;
-
-};
-
-typedef boost::shared_ptr<Buffer> BufferPtr;
+Buffer::~Buffer() {
+}
 
 }
 }

@@ -24,46 +24,22 @@
  *
  * ============================================================ */
 
-#pragma once
-
-#include <map>
-
-#include <boost/cstdint.hpp>
-#include <boost/thread.hpp>
-
-#include <rsc/logging/Logger.h>
-
-#include "Buffer.h"
+#include "BufferInsertHandler.h"
 
 namespace rsb {
 namespace tools {
-namespace buffer {
+namespace simplebuffer {
 
-/**
- * @author jwienke
- */
-class TimeBoundedBuffer: public Buffer {
-public:
+BufferInsertHandler::BufferInsertHandler(BufferPtr buffer) :
+        buffer(buffer) {
+}
 
-    TimeBoundedBuffer(const boost::uint64_t &deltaInMuSec);
-    virtual ~TimeBoundedBuffer();
+BufferInsertHandler::~BufferInsertHandler() {
+}
 
-    void insert(rsb::EventPtr event);
-    rsb::EventPtr get(const rsb::EventId &id);
-
-private:
-
-    void removeOld();
-
-    rsc::logging::LoggerPtr logger;
-
-    boost::uint64_t deltaInMuSec;
-
-    boost::recursive_mutex mapsMutex;
-    std::map<rsb::EventId, rsb::EventPtr> eventMap;
-    std::multimap<boost::uint64_t, rsb::EventId> deletionTimeToId;
-
-};
+void BufferInsertHandler::handle(rsb::EventPtr event) {
+    buffer->insert(event);
+}
 
 }
 }

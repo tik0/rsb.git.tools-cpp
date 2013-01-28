@@ -59,8 +59,8 @@ ENDIF()
 
 # Tools in sub-directories
 
-SET(BUFFER_LIBRARY_NAME rsbbuffer)
-SET(BUFFER_BINARY_NAME buffer)
+SET(BUFFER_LIBRARY_NAME rsbsimplebuffer)
+SET(BUFFER_BINARY_NAME simplebuffer)
 
 SET(LOGGER_BINARY_NAME "logger")
 

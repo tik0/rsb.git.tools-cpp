@@ -24,16 +24,33 @@
  *
  * ============================================================ */
 
-#include "Buffer.h"
+#include "BufferRequestCallback.h"
+
+using namespace std;
+using namespace rsb;
 
 namespace rsb {
 namespace tools {
-namespace buffer {
+namespace simplebuffer {
 
-Buffer::Buffer() {
+BufferRequestCallback::BufferRequestCallback(BufferPtr buffer) :
+        buffer(buffer) {
 }
 
-Buffer::~Buffer() {
+BufferRequestCallback::~BufferRequestCallback() {
+}
+
+AnnotatedData BufferRequestCallback::call(const string& /*methodName*/,
+        boost::shared_ptr<EventId> input) {
+
+    EventPtr event = buffer->get(*input);
+    if (event) {
+        return make_pair(event->getType(), event->getData());
+    } else {
+        return make_pair(rsc::runtime::typeName(typeid(void)),
+                boost::shared_ptr<void>());
+    }
+
 }
 
 }

@@ -33,7 +33,7 @@ using namespace std;
 
 namespace rsb {
 namespace tools {
-namespace buffer {
+namespace simplebuffer {
 
 TimeBoundedBuffer::TimeBoundedBuffer(const boost::uint64_t &deltaInMuSec) :
         logger(rsc::logging::Logger::getLogger("rsbbuffer.TimeBoundedBuffer")), deltaInMuSec(

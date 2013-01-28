@@ -26,29 +26,42 @@
 
 #pragma once
 
-#include <rsb/EventId.h>
-#include <rsb/patterns/Server.h>
+#include <map>
+
+#include <boost/cstdint.hpp>
+#include <boost/thread.hpp>
+
+#include <rsc/logging/Logger.h>
 
 #include "Buffer.h"
 
 namespace rsb {
 namespace tools {
-namespace buffer {
+namespace simplebuffer {
 
 /**
  * @author jwienke
  */
-class BufferRequestCallback: public rsb::patterns::Server::AnyReplyTypeCallback<
-        rsb::EventId> {
+class TimeBoundedBuffer: public Buffer {
 public:
-    BufferRequestCallback(BufferPtr buffer);
-    virtual ~BufferRequestCallback();
 
-    rsb::AnnotatedData call(const std::string& methodName,
-            boost::shared_ptr<rsb::EventId> input);
+    TimeBoundedBuffer(const boost::uint64_t &deltaInMuSec);
+    virtual ~TimeBoundedBuffer();
+
+    void insert(rsb::EventPtr event);
+    rsb::EventPtr get(const rsb::EventId &id);
 
 private:
-    BufferPtr buffer;
+
+    void removeOld();
+
+    rsc::logging::LoggerPtr logger;
+
+    boost::uint64_t deltaInMuSec;
+
+    boost::recursive_mutex mapsMutex;
+    std::map<rsb::EventId, rsb::EventPtr> eventMap;
+    std::multimap<boost::uint64_t, rsb::EventId> deletionTimeToId;
 
 };
 
