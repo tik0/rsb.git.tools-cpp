@@ -13,6 +13,7 @@ SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 OPTION(OPTION_BUILD_EXAMPLES "Whether to build the examples or not" TRUE)
 OPTION(OPTION_BUILD_TESTS "Whether to build the tests or not" TRUE)
+OPTION(OPTION_BUILD_BUFFER "Decide whether to build the temporal buffer tool" TRUE)
 
 # default version information
 SET(VERSION_MAJOR   "0" CACHE STRING "Major project version part")
