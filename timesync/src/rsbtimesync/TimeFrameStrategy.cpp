@@ -41,10 +41,10 @@ public:
     SyncPushTask(EventPtr primaryEvent, boost::mutex &subEventMutex,
             std::multimap<boost::uint64_t, rsb::EventPtr> &subEventsByTime
             , SyncDataHandlerPtr handler, const unsigned int &bufferTimeMus
-            ,const unsigned int &timeFrameMus) :
+            ,const unsigned int &timeFrameMus, TimestampSelectorPtr selector) :
             primaryEvent(primaryEvent), subEventMutex(subEventMutex), subEventsByTime(
                     subEventsByTime), handler(handler), bufferTimeMus(
-                    bufferTimeMus), timeFrameMus(timeFrameMus) {
+                    bufferTimeMus), timeFrameMus(timeFrameMus), selector(selector) {
     }
 
     void run() {
@@ -61,11 +61,11 @@ public:
             boost::mutex::scoped_lock lock(subEventMutex);
             for (std::multimap<boost::uint64_t, rsb::EventPtr>::iterator it =
                     subEventsByTime.lower_bound(
-                            primaryEvent->getMetaData().getCreateTime()
+                            selector->getTimestamp(primaryEvent)
                                     - timeFrameMus);
                     it
                             != subEventsByTime.upper_bound(
-                                    primaryEvent->getMetaData().getCreateTime()
+                                    selector->getTimestamp(primaryEvent)
                                             + timeFrameMus); ++it) {
                 (*message)[it->second->getScope()].push_back(it->second);
                 resultEvent->addCause(it->second->getEventId());
@@ -87,6 +87,7 @@ private:
     SyncDataHandlerPtr handler;
     unsigned int bufferTimeMus;
     unsigned int timeFrameMus;
+    TimestampSelectorPtr selector;
 
 };
 
@@ -175,7 +176,7 @@ void TimeFrameStrategy::handle(rsb::EventPtr event) {
 
         rsc::threading::TaskPtr task(
                 new SyncPushTask(event, subEventMutex, subEventsByTime, handler,
-                        bufferTimeMus, timeFrameMus));
+                        bufferTimeMus, timeFrameMus, selector));
         // TODO maybe we have to compare local time to created time or something like that to get a better delay?
         executor->schedule(task, bufferTimeMus);
 
@@ -195,10 +196,12 @@ void TimeFrameStrategy::cleanerThreadMethod() {
 
         {
             boost::mutex::scoped_lock lock(subEventMutex);
-            subEventsByTime.erase(
-                    subEventsByTime.begin(),
-                    subEventsByTime.upper_bound(
-                            rsc::misc::currentTimeMicros() - (bufferTimeMus + timeFrameMus)));
+            if (!subEventsByTime.empty()) {
+                subEventsByTime.erase(subEventsByTime.begin(),
+                        subEventsByTime.upper_bound(
+                                (--subEventsByTime.end())->first
+                                        - (bufferTimeMus + timeFrameMus)));
+            }
         }
 
         boost::this_thread::sleep(
