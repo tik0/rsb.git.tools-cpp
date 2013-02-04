@@ -137,7 +137,7 @@ ParticipantConfig getNoConversionConfig() {
                     converters.end()));
     // adapt default participant configuration
     ParticipantConfig config =
-            Factory::getInstance().getDefaultParticipantConfig();
+            getFactory().getDefaultParticipantConfig();
     set<ParticipantConfig::Transport> transports = config.getTransports();
     for (set<ParticipantConfig::Transport>::const_iterator it =
             transports.begin(); it != transports.end(); ++it) {
@@ -172,11 +172,11 @@ int main(int argc, char **argv) {
     }
 
     // create a remove server for the buffer
-    RemoteServerPtr bufferServer = Factory::getInstance().createRemoteServer(
+    RemoteServerPtr bufferServer = getFactory().createRemoteServer(
             bufferScopeName, getNoConversionConfig());
 
     // create a listener on the original data
-    ListenerPtr listener = Factory::getInstance().createListener(dataScopeName,
+    ListenerPtr listener = getFactory().createListener(dataScopeName,
             getNoConversionConfig());
     listener->addHandler(HandlerPtr(new DelayedRequestingHandler(bufferServer)),
             true);

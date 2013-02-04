@@ -281,7 +281,7 @@ void configureConversion() {
                     converters.end()));
     // adapt default participant configuration
     ParticipantConfig config =
-            Factory::getInstance().getDefaultParticipantConfig();
+            getFactory().getDefaultParticipantConfig();
     set<ParticipantConfig::Transport> transports = config.getTransports();
     for (set<ParticipantConfig::Transport>::const_iterator it =
             transports.begin(); it != transports.end(); ++it) {
@@ -291,7 +291,7 @@ void configureConversion() {
         options["converters"] = noConversionSelectionStrategy;
         transport.setOptions(options);
     }
-    Factory::getInstance().setDefaultParticipantConfig(config);
+    getFactory().setDefaultParticipantConfig(config);
 
 }
 
@@ -310,7 +310,7 @@ ParticipantConfig createInformerConfig() {
                     converters.end()));
     // adapt default participant configuration
     ParticipantConfig config =
-            Factory::getInstance().getDefaultParticipantConfig();
+            getFactory().getDefaultParticipantConfig();
     config.setQualityOfServiceSpec(
             QualityOfServiceSpec(QualityOfServiceSpec::ORDERED,
                     QualityOfServiceSpec::RELIABLE));
@@ -364,7 +364,7 @@ int main(int argc, char **argv) {
     configureConversion();
 
     Informer<EventsByScopeMap>::Ptr informer =
-            Factory::getInstance().createInformer<EventsByScopeMap>(outScope,
+            getFactory().createInformer<EventsByScopeMap>(outScope,
                     createInformerConfig());
     SyncDataHandlerPtr handler(new InformingSyncDataHandler(informer));
 
@@ -373,7 +373,7 @@ int main(int argc, char **argv) {
     strategy->setSyncDataHandler(handler);
     strategy->setTimestampSelector(timestampSelector);
 
-    ListenerPtr primaryListener = Factory::getInstance().createListener(
+    ListenerPtr primaryListener = getFactory().createListener(
             primaryScope);
     primaryListener->addHandler(strategy);
 
@@ -382,7 +382,7 @@ int main(int argc, char **argv) {
             scopeIt != supplementaryScopes.end(); ++scopeIt) {
 
         supplementaryListeners[*scopeIt] =
-                Factory::getInstance().createListener(*scopeIt);
+                getFactory().createListener(*scopeIt);
         supplementaryListeners[*scopeIt]->addHandler(strategy);
 
     }

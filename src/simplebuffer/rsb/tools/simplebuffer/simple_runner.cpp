@@ -122,7 +122,7 @@ ParticipantConfig getNoConversionConfig() {
                     converters.end()));
     // adapt default participant configuration
     ParticipantConfig config =
-            Factory::getInstance().getDefaultParticipantConfig();
+            getFactory().getDefaultParticipantConfig();
     set<ParticipantConfig::Transport> transports = config.getTransports();
     for (set<ParticipantConfig::Transport>::const_iterator it =
             transports.begin(); it != transports.end(); ++it) {
@@ -152,15 +152,15 @@ int main(int argc, char **argv) {
     // set up listeners for the buffer
     for (set<Scope>::const_iterator scopeIt = scopes.begin();
             scopeIt != scopes.end(); ++scopeIt) {
-        ListenerPtr listener = Factory::getInstance().createListener(*scopeIt,
+        ListenerPtr listener = getFactory().createListener(*scopeIt,
                 noConversionConfig);
         listenersByScope[*scopeIt] = listener;
         listener->addHandler(HandlerPtr(new BufferInsertHandler(buffer)), true);
     }
 
     // make buffer available over RPC
-    ServerPtr server = Factory::getInstance().createServer(bufferScope,
-            Factory::getInstance().getDefaultParticipantConfig(),
+    ServerPtr server = getFactory().createServer(bufferScope,
+            getFactory().getDefaultParticipantConfig(),
             noConversionConfig);
     server->registerMethod("get",
             Server::CallbackPtr(new BufferRequestCallback(buffer)));

@@ -185,7 +185,7 @@ int main(int argc, char* argv[]) {
 
     // Configure a Listener object.
     ParticipantConfig config
-        = Factory::getInstance().getDefaultParticipantConfig();
+        = getFactory().getDefaultParticipantConfig();
 
     set<ParticipantConfig::Transport> transports = config.getTransports();
     for (set<ParticipantConfig::Transport>::const_iterator it =
@@ -198,7 +198,7 @@ int main(int argc, char* argv[]) {
     }
 
     ListenerPtr listener
-        = Factory::getInstance().createListener(Scope(scope), config);
+        = getFactory().createListener(Scope(scope), config);
     listener->addHandler(HandlerPtr(new FormattingHandler(formatter)));
 
     // Wait until termination is requested through the SIGINT handler.

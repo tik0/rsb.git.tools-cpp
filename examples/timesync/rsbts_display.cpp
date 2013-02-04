@@ -89,13 +89,13 @@ int main(int argc, char **argv) {
     }
 
     // let factory register default converters
-    Factory::getInstance();
+    getFactory();
 
     // register converter
     converterRepository<string>()->registerConverter(
             Converter<string>::Ptr(new EventsByScopeMapConverter));
 
-    ListenerPtr listener = Factory::getInstance().createListener(scope);
+    ListenerPtr listener = getFactory().createListener(scope);
     listener->addHandler(HandlerPtr(new EventQueuePushHandler(eventQueue)));
 
     while (true) {
