@@ -1,4 +1,3 @@
-
 SET(LIB_SOURCES rsb/tools/simplebuffer/Buffer.cpp
                 rsb/tools/simplebuffer/BufferInsertHandler.cpp
                 rsb/tools/simplebuffer/BufferRequestCallback.cpp
@@ -30,6 +29,6 @@ INSTALL(TARGETS ${BUFFER_LIBRARY_NAME}
 INSTALL(PROGRAMS    "${CMAKE_CURRENT_BINARY_DIR}/${BUFFER_BINARY_NAME}"
         DESTINATION "bin"
         RENAME      "${BINARY_PREFIX}${BUFFER_BINARY_NAME}${BINARY_SUFFIX}")
-        
-INSTALL_FILES_RECURSIVE(include LIB_HEADERS)
-        
+
+INSTALL_FILES_RECURSIVE("include/${CMAKE_PROJECT_NAME}${VERSION_SUFFIX}"
+                        LIB_HEADERS)

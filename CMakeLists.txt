@@ -7,7 +7,7 @@ SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS TRUE)
 
 # Global Project Settings
 
-PROJECT("rsb-tools-cpp")
+PROJECT("rsb-tools")
 
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
@@ -60,16 +60,16 @@ ENDIF()
 
 # Tools in sub-directories
 
-SET(BUFFER_LIBRARY_NAME rsbsimplebuffer)
+SET(BINARY_PREFIX  "rsb-") # used by install rule in subdirs
+SET(BINARY_SUFFIX "cpp${VERSION_SUFFIX}")
+
+SET(BUFFER_LIBRARY_NAME "rsbsimplebuffer${VERSION_SUFFIX}")
 SET(BUFFER_BINARY_NAME simplebuffer)
 
 SET(LOGGER_BINARY_NAME "logger")
 
-SET(TIMESYNC_LIBRARY_NAME "rsbts")
+SET(TIMESYNC_LIBRARY_NAME "rsbts${VERSION_SUFFIX}")
 SET(TIMESYNC_BINARY_NAME "timesync")
-
-SET(BINARY_PREFIX  "rsb-") # used by install rule in subdirs
-SET(BINARY_SUFFIX "cpp${VERSION_SUFFIX}")
 
 ADD_SUBDIRECTORY(src)
 IF(OPTION_BUILD_EXAMPLES)

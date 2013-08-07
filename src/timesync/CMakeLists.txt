@@ -1,4 +1,3 @@
-
 SET(RSBTS_SOURCES rsb/tools/timesync/ApproximateTimeStrategy.cpp
                   rsb/tools/timesync/FirstMatchStrategy.cpp
                   rsb/tools/timesync/InformerHandler.cpp
@@ -42,13 +41,18 @@ INSTALL(PROGRAMS    "${CMAKE_CURRENT_BINARY_DIR}/${TIMESYNC_BINARY_NAME}"
         DESTINATION "bin"
         RENAME      "${BINARY_PREFIX}${TIMESYNC_BINARY_NAME}${BINARY_SUFFIX}")
 
-INSTALL_FILES_RECURSIVE(include RSBTS_HEADERS)
+INSTALL_FILES_RECURSIVE("include/${CMAKE_PROJECT_NAME}${VERSION_SUFFIX}"
+                        RSBTS_HEADERS)
 
-CONFIGURE_FILE(RSBTSConfig.cmake.in "${CMAKE_BINARY_DIR}/RSBTSConfig.cmake" @ONLY)
-INSTALL(FILES "${CMAKE_BINARY_DIR}/RSBTSConfig.cmake" DESTINATION share/RSBTS)
-CONFIGURE_FILE(RSBTSConfigVersion.cmake.in "${CMAKE_BINARY_DIR}/RSBTSConfigVersion.cmake" @ONLY)
-INSTALL(FILES "${CMAKE_BINARY_DIR}/RSBTSConfigVersion.cmake" DESTINATION share/RSBTS)
+CONFIGURE_FILE(RSBTSConfig.cmake.in "${CMAKE_BINARY_DIR}/RSBTSConfig.cmake"
+               @ONLY)
+INSTALL(FILES "${CMAKE_BINARY_DIR}/RSBTSConfig.cmake"
+              DESTINATION "share/rsbts${VERSION_SUFFIX}")
+CONFIGURE_FILE(RSBTSConfigVersion.cmake.in "${CMAKE_BINARY_DIR}/RSBTSConfigVersion.cmake"
+               @ONLY)
+INSTALL(FILES "${CMAKE_BINARY_DIR}/RSBTSConfigVersion.cmake"
+              DESTINATION "share/rsbts${VERSION_SUFFIX}")
 
 EXPORT(TARGETS ${TIMESYNC_LIBRARY_NAME} FILE "${CMAKE_BINARY_DIR}/RSBTSDepends.cmake")
 INSTALL(EXPORT RSBTSDepends
-        DESTINATION "share/RSBTS")
+        DESTINATION "share/rsbts${VERSION_SUFFIX}")
