@@ -24,6 +24,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
+#include <rsb/MetaData.h>
 #include <rsb/EventCollections.h>
 
 #include "rsb/tools/timesync/ApproximateTimeStrategy.h"
@@ -81,6 +82,8 @@ public:
 
 TEST_F(ApproximateTimeStrategyTest, testEqualFrequencyAndTiming) {
 
+    boost::uint64_t currentTime = 1;
+
     // very simple case, completely synchronized events
     unsigned int totalIterations = 5;
     for (unsigned int i = 0; i < totalIterations; ++i) {
@@ -89,6 +92,7 @@ TEST_F(ApproximateTimeStrategyTest, testEqualFrequencyAndTiming) {
                 scopeIt != scopes.end(); ++scopeIt) {
 
             EventPtr event(new Event);
+            event->mutableMetaData().setCreateTime(currentTime);
             event->setEventId(rsc::misc::UUID(), i);
             event->setScope(*scopeIt);
             event->setType(rsc::runtime::typeName<string>());
@@ -96,11 +100,13 @@ TEST_F(ApproximateTimeStrategyTest, testEqualFrequencyAndTiming) {
                     VoidPtr(new string(boost::str(boost::format("%d") % i))));
             strategy->handle(event);
 
-            boost::this_thread::sleep(boost::posix_time::milliseconds(10));
+            // ensure that we are not completely sending at the same time to
+            // prevent testing corner-case synchronization
+            ++currentTime;
 
         }
 
-        boost::this_thread::sleep(boost::posix_time::milliseconds(50));
+        currentTime += 100;
 
     }
 
@@ -139,6 +145,8 @@ TEST_F(ApproximateTimeStrategyTest, testOneDoubleFrequency) {
 
     const Scope doubleScope = *(scopes.begin());
 
+    boost::uint64_t currentTime = 1;
+
     unsigned int totalIterations = 10;
     for (unsigned int i = 0; i < totalIterations; ++i) {
 
@@ -148,6 +156,7 @@ TEST_F(ApproximateTimeStrategyTest, testOneDoubleFrequency) {
             if (i % 2 == 0 || *scopeIt == doubleScope) {
 
                 EventPtr event(new Event);
+                event->mutableMetaData().setCreateTime(currentTime);
                 event->setEventId(rsc::misc::UUID(), i);
                 event->setScope(*scopeIt);
                 event->setType(rsc::runtime::typeName<string>());
@@ -157,7 +166,7 @@ TEST_F(ApproximateTimeStrategyTest, testOneDoubleFrequency) {
                                         boost::str(boost::format("%d") % i))));
                 strategy->handle(event);
 
-                boost::this_thread::sleep(boost::posix_time::milliseconds(10));
+                ++currentTime;
 
             }
 
@@ -169,7 +178,7 @@ TEST_F(ApproximateTimeStrategyTest, testOneDoubleFrequency) {
         // In other words, the intermediate event on /aaa must be shortly after
         // the three synchronized events.
         if (i % 2 != 0) {
-            boost::this_thread::sleep(boost::posix_time::milliseconds(150));
+            currentTime += 100;
         }
 
     }
