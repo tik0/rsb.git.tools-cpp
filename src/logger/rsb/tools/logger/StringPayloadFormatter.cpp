@@ -50,7 +50,7 @@ string StringPayloadFormatter::getExtraTypeInfo(EventPtr event) const {
 }
 
 void StringPayloadFormatter::format(ostream &stream, EventPtr event) {
-    shared_ptr<string> data = boost::static_pointer_cast<string>(event->getData());
+    boost::shared_ptr<string> data = boost::static_pointer_cast<string>(event->getData());
     if (!data) {
         stream << "Failed to decode event data as string." << endl
                << "  Event: " << event << endl;
