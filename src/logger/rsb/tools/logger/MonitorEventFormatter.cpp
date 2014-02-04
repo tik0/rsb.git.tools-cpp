@@ -174,7 +174,7 @@ EventFormatter* MonitorEventFormatter::create(const Properties &props) {
 }
 
 void MonitorEventFormatter::format(ostream &/*stream*/, EventPtr event) {
-    recursive_mutex::scoped_lock lock(this->quantitiesMutex);
+    boost::recursive_mutex::scoped_lock lock(this->quantitiesMutex);
 
     ScopeMap::iterator scps;
 
@@ -211,7 +211,7 @@ void MonitorEventFormatter::format(ostream &/*stream*/, EventPtr event) {
 }
 
 void MonitorEventFormatter::printStats() {
-    recursive_mutex::scoped_lock lock(this->quantitiesMutex);
+    boost::recursive_mutex::scoped_lock lock(this->quantitiesMutex);
 
     printHeader();
 

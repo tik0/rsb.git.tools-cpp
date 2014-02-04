@@ -45,7 +45,6 @@
 
 using namespace std;
 
-using namespace boost;
 using namespace boost::posix_time;
 using namespace boost::program_options;
 
@@ -124,7 +123,7 @@ bool handleCommandline(int argc, char *argv[]) {
      "The scope of the channel for which events should be logged.")
     ("style",
      value<string>(&eventFormat)->default_value("compact"),
-     str(format("The style that should be used to print received events. Value has to be one of %1%.")
+     boost::str(boost::format("The style that should be used to print received events. Value has to be one of %1%.")
          % getEventFormatterNames()).c_str());
 
     positional_options_description positional_options;
@@ -140,7 +139,7 @@ bool handleCommandline(int argc, char *argv[]) {
         return true;
     }
     if (!getEventFormatterNames().count(eventFormat)) {
-        throw invalid_argument(str(format("Argument of --format option has to one of %1%.")
+        throw invalid_argument(boost::str(boost::format("Argument of --format option has to one of %1%.")
                    % getEventFormatterNames()));
     }
     if (scope.empty()) {
@@ -156,11 +155,11 @@ void usage() {
 }
 
 bool doTerminate = false;
-recursive_mutex terminateMutex;
-condition terminateCondition;
+boost::recursive_mutex terminateMutex;
+boost::condition terminateCondition;
 
 void handleSIGINT(int /*signal*/) {
-    recursive_mutex::scoped_lock lock(terminateMutex, try_to_lock);
+    boost::recursive_mutex::scoped_lock lock(terminateMutex, boost::try_to_lock);
     doTerminate = true;
     terminateCondition.notify_all();
 }
@@ -204,7 +203,7 @@ int main(int argc, char* argv[]) {
     // Wait until termination is requested through the SIGINT handler.
     signal(SIGINT, &handleSIGINT);
     while (!doTerminate) {
-        recursive_mutex::scoped_lock lock(terminateMutex, try_to_lock);
+        boost::recursive_mutex::scoped_lock lock(terminateMutex, boost::try_to_lock);
         terminateCondition.wait(lock);
     }
 
