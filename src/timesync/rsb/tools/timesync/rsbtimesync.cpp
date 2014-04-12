@@ -3,7 +3,7 @@
  * This file is a part of the RSB TimeSync project.
  *
  * Copyright (C) 2011 by Johannes Wienke <jwienke at techfak dot uni-bielefeld dot de>
- * Copyright (C) 2012 Jan Moringen <jmoringe@techfak.dot uni-bielefeld.de>
+ * Copyright (C) 2012, 2014 Jan Moringen <jmoringe@techfak.dot uni-bielefeld.de>
  *
  * This program is free software; you can redistribute it
  * and/or modify it under the terms of the GNU General
@@ -31,16 +31,18 @@
 #include <rsc/runtime/ContainerIO.h>
 #include <rsc/threading/SynchronizedQueue.h>
 
-#include <rsb/EventQueuePushHandler.h>
+#include <rsb/util/EventQueuePushHandler.h>
+
 #include <rsb/Factory.h>
 #include <rsb/Listener.h>
 #include <rsb/Scope.h>
+#include <rsb/EventCollections.h>
+
 #include <rsb/converter/Converter.h>
 #include <rsb/converter/ConverterSelectionStrategy.h>
 #include <rsb/converter/EventsByScopeMapConverter.h>
 #include <rsb/converter/PredicateConverterList.h>
 #include <rsb/converter/SchemaAndByteArrayConverter.h>
-#include <rsb/EventCollections.h>
 
 #include "ApproximateTimeStrategy.h"
 #include "FirstMatchStrategy.h"
