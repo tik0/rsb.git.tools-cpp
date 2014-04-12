@@ -36,13 +36,15 @@
 #include <rsb/Factory.h>
 #include <rsb/Listener.h>
 #include <rsb/Scope.h>
+
 #include <rsb/converter/ConverterSelectionStrategy.h>
 #include <rsb/converter/EventIdConverter.h>
 #include <rsb/converter/PredicateConverterList.h>
 #include <rsb/converter/SchemaAndByteArrayConverter.h>
 #include <rsb/converter/TypeNameConverterPredicate.h>
 #include <rsb/converter/VoidConverter.h>
-#include <rsb/patterns/Server.h>
+
+#include <rsb/patterns/LocalServer.h>
 
 #include <rsc/logging/Logger.h>
 #include <rsc/logging/LoggerFactory.h>
@@ -159,11 +161,12 @@ int main(int argc, char **argv) {
     }
 
     // make buffer available over RPC
-    ServerPtr server = getFactory().createServer(bufferScope,
-            getFactory().getDefaultParticipantConfig(),
-            noConversionConfig);
+    LocalServerPtr server = getFactory()
+        .createLocalServer(bufferScope,
+                           getFactory().getDefaultParticipantConfig(),
+                           noConversionConfig);
     server->registerMethod("get",
-            Server::CallbackPtr(new BufferRequestCallback(buffer)));
+                           LocalServer::CallbackPtr(new BufferRequestCallback(buffer)));
 
     // TODO add better sleep logic
     while (true) {
@@ -173,4 +176,3 @@ int main(int argc, char **argv) {
     return EXIT_SUCCESS;
 
 }
-

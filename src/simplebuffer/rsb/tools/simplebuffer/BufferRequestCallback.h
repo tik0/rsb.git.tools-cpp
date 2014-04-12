@@ -27,7 +27,7 @@
 #pragma once
 
 #include <rsb/EventId.h>
-#include <rsb/patterns/Server.h>
+#include <rsb/patterns/LocalServer.h>
 
 #include "Buffer.h"
 
@@ -38,7 +38,7 @@ namespace simplebuffer {
 /**
  * @author jwienke
  */
-class BufferRequestCallback: public rsb::patterns::Server::AnyReplyTypeCallback<
+class BufferRequestCallback: public rsb::patterns::LocalServer::AnyReplyTypeCallback<
         rsb::EventId> {
 public:
     BufferRequestCallback(BufferPtr buffer);
