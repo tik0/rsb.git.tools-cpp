@@ -3,7 +3,7 @@
  * This file is a part of the RSBTimeSync project.
  *
  * Copyright (C) 2011 by Johannes Wienke <jwienke at techfak dot uni-bielefeld dot de>
- * Copyright (C) 2012 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2012, 2014 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This program is free software; you can redistribute it
  * and/or modify it under the terms of the GNU General
@@ -24,12 +24,14 @@
 
 #include <boost/program_options.hpp>
 
+#include <rsb/util/EventQueuePushHandler.h>
+
 #include <rsb/Event.h>
 #include <rsb/EventCollections.h>
-#include <rsb/EventQueuePushHandler.h>
 #include <rsb/Factory.h>
 #include <rsb/Listener.h>
 #include <rsb/Scope.h>
+
 #include <rsb/converter/Converter.h>
 #include <rsb/converter/EventsByScopeMapConverter.h>
 
@@ -96,7 +98,7 @@ int main(int argc, char **argv) {
             Converter<string>::Ptr(new EventsByScopeMapConverter));
 
     ListenerPtr listener = getFactory().createListener(scope);
-    listener->addHandler(HandlerPtr(new EventQueuePushHandler(eventQueue)));
+    listener->addHandler(HandlerPtr(new rsb::util::EventQueuePushHandler(eventQueue)));
 
     while (true) {
 
