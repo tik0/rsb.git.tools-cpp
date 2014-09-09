@@ -75,11 +75,11 @@ set<Scope> supplementaryScopes;
 
 ConverterSelectionStrategy<string>::Ptr noConversionSelectionStrategy;
 
-map<string, SyncStrategyPtr> strategiesByName;
-SyncStrategyPtr strategy;
 TimestampSelectorPtr timestampSelector(new CreateTimestampSelector);
 
-void registerStrategies() {
+map<string, SyncStrategyPtr> createStrategies() {
+
+    map<string, SyncStrategyPtr> strategiesByName;
 
     {
         SyncStrategyPtr newMatch(new FirstMatchStrategy);
@@ -95,6 +95,8 @@ void registerStrategies() {
     }
 
     RSCINFO(logger, "Registered strategies: " << strategiesByName);
+
+    return strategiesByName;
 
 }
 
@@ -115,11 +117,13 @@ TimestampSelectorPtr createSelectorFromName(const string &name) {
 
 }
 
-bool parseOptions(int argc, char **argv) {
+bool parseOptions(int argc, char **argv,
+            const map<string, SyncStrategyPtr>& strategiesByName,
+            SyncStrategyPtr& selectedStrategy) {
 
     stringstream strategiesDescription;
     strategiesDescription << "Specifies the strategy to be used for syncing {";
-    for (map<string, SyncStrategyPtr>::iterator strategyIt =
+    for (map<string, SyncStrategyPtr>::const_iterator strategyIt =
             strategiesByName.begin(); strategyIt != strategiesByName.end();
             ++strategyIt) {
         strategiesDescription << " " << strategyIt->first;
@@ -152,7 +156,7 @@ bool parseOptions(int argc, char **argv) {
             timestampsDescription.str().c_str());
 
     // also for the strategies
-    for (map<string, SyncStrategyPtr>::iterator strategyIt =
+    for (map<string, SyncStrategyPtr>::const_iterator strategyIt =
             strategiesByName.begin(); strategyIt != strategiesByName.end();
             ++strategyIt) {
         strategyIt->second->provideOptions(desc);
@@ -253,9 +257,9 @@ bool parseOptions(int argc, char **argv) {
                 << endl;
         return false;
     }
-    strategy = strategiesByName[strategyKey];
+    selectedStrategy = strategiesByName.find(strategyKey)->second;
     try {
-        strategy->handleOptions(vm);
+        selectedStrategy->handleOptions(vm);
     } catch (invalid_argument &e) {
         cerr << "Error parsing arguments for strategy " << strategyKey << ": "
                 << e.what() << endl;
@@ -266,7 +270,7 @@ bool parseOptions(int argc, char **argv) {
     "  " << OPTION_OUT_SCOPE << " = " << outScope << "\n"
     "  " << OPTION_PRIMARY_SCOPE << " = " << primaryScope << "\n"
     "  " << OPTION_SUPPLEMENTARY_SCOPE << " = " << supplementaryScopes << "\n"
-    "  " << OPTION_STRATEGY << " = " << strategy->getKey() << "\n"
+    "  " << OPTION_STRATEGY << " = " << selectedStrategy->getKey() << "\n"
     "  " << OPTION_TIMESTAMP << " = " << timestampSelector);
 
     return true;
@@ -363,9 +367,10 @@ void onStopSignal(int /*signal*/) {
 }
 
 int main(int argc, char **argv) {
-    registerStrategies();
+    map<string, SyncStrategyPtr> strategiesByName = createStrategies();
 
-    bool parsed = parseOptions(argc, argv);
+    SyncStrategyPtr strategy;
+    bool parsed = parseOptions(argc, argv, strategiesByName, strategy);
     if (!parsed) {
         cerr << "Error parsing arguments. Terminating." << endl;
         return EXIT_FAILURE;
