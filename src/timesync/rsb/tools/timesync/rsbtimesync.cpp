@@ -23,7 +23,9 @@
 #include <set>
 #include <vector>
 
+#include <signal.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/program_options.hpp>
@@ -354,6 +356,12 @@ private:
 
 };
 
+volatile bool doTerminate = false;
+
+void onStopSignal(int /*signal*/) {
+    doTerminate = true;
+}
+
 int main(int argc, char **argv) {
     registerStrategies();
 
@@ -389,13 +397,19 @@ int main(int argc, char **argv) {
 
     }
 
-    // main loop
-    // TODO add better sleep logic with interrupt handler
-    while (true) {
-
-        boost::this_thread::sleep(boost::posix_time::seconds(10));
-
+    // wait for sigint and sigterm and perform a clean shutdown through
+    // static deconstruction
+    struct sigaction signalAction;
+    sigfillset(&signalAction.sa_mask);
+    signalAction.sa_handler = &onStopSignal;
+    signalAction.sa_flags = 0;
+    sigaction(SIGINT, &signalAction, NULL);
+    sigaction(SIGTERM, &signalAction, NULL);
+    while(!doTerminate) {
+        boost::this_thread::sleep(boost::posix_time::seconds(1));
     }
+
+    cout << "Terminating!" << endl;
 
     return EXIT_SUCCESS;
 
