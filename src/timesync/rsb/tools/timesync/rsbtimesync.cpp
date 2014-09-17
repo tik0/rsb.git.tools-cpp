@@ -23,15 +23,16 @@
 #include <set>
 #include <vector>
 
-#include <signal.h>
 #include <stdlib.h>
-#include <unistd.h>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/program_options.hpp>
 
 #include <rsc/runtime/ContainerIO.h>
+
 #include <rsc/threading/SynchronizedQueue.h>
+
+#include <rsc/misc/SignalWaiter.h>
 
 #include <rsb/util/EventQueuePushHandler.h>
 
@@ -360,13 +361,10 @@ private:
 
 };
 
-volatile bool doTerminate = false;
-
-void onStopSignal(int /*signal*/) {
-    doTerminate = true;
-}
-
 int main(int argc, char **argv) {
+
+    rsc::misc::initSignalWaiter();
+
     map<string, SyncStrategyPtr> strategiesByName = createStrategies();
 
     SyncStrategyPtr strategy;
@@ -402,20 +400,6 @@ int main(int argc, char **argv) {
 
     }
 
-    // wait for sigint and sigterm and perform a clean shutdown through
-    // static deconstruction
-    struct sigaction signalAction;
-    sigfillset(&signalAction.sa_mask);
-    signalAction.sa_handler = &onStopSignal;
-    signalAction.sa_flags = 0;
-    sigaction(SIGINT, &signalAction, NULL);
-    sigaction(SIGTERM, &signalAction, NULL);
-    while(!doTerminate) {
-        boost::this_thread::sleep(boost::posix_time::seconds(1));
-    }
-
-    cout << "Terminating!" << endl;
-
-    return EXIT_SUCCESS;
+    return rsc::misc::suggestedExitCode(rsc::misc::waitForSignal());
 
 }

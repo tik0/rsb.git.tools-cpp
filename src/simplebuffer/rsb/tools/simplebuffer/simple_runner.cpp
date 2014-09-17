@@ -33,6 +33,8 @@
 
 #include <boost/program_options.hpp>
 
+#include <rsc/misc/SignalWaiter.h>
+
 #include <rsb/Factory.h>
 #include <rsb/Listener.h>
 #include <rsb/Scope.h>
@@ -143,6 +145,8 @@ int main(int argc, char **argv) {
 
     handleCommandline(argc, argv);
 
+    rsc::misc::initSignalWaiter();
+
 //    rsc::logging::Logger::getLogger("rsbbuffer")->setLevel(
 //            rsc::logging::Logger::LEVEL_ALL);
 
@@ -168,11 +172,6 @@ int main(int argc, char **argv) {
     server->registerMethod("get",
                            LocalServer::CallbackPtr(new BufferRequestCallback(buffer)));
 
-    // TODO add better sleep logic
-    while (true) {
-        boost::this_thread::sleep(boost::posix_time::seconds(10));
-    }
-
-    return EXIT_SUCCESS;
+    return rsc::misc::suggestedExitCode(rsc::misc::waitForSignal());
 
 }

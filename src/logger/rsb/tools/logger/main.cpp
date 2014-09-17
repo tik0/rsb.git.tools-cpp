@@ -2,7 +2,7 @@
  *
  * This file is part of the RSB project
  *
- * Copyright (C) 2011, 2012 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2011, 2012, 2014 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This program is free software; you can redistribute it
  * and/or modify it under the terms of the GNU General
@@ -17,8 +17,6 @@
  *
  * ============================================================ */
 
-#include <signal.h>
-
 #include <iostream>
 
 #include <boost/format.hpp>
@@ -27,6 +25,8 @@
 #include <boost/thread/condition.hpp>
 
 #include <boost/program_options.hpp>
+
+#include <rsc/misc/SignalWaiter.h>
 
 #include <rsb/Factory.h>
 #include <rsb/Handler.h>
@@ -154,16 +154,6 @@ void usage() {
     cout << options << endl;
 }
 
-bool doTerminate = false;
-boost::recursive_mutex terminateMutex;
-boost::condition terminateCondition;
-
-void handleSIGINT(int /*signal*/) {
-    boost::recursive_mutex::scoped_lock lock(terminateMutex, boost::try_to_lock);
-    doTerminate = true;
-    terminateCondition.notify_all();
-}
-
 int main(int argc, char* argv[]) {
     // Handle commandline arguments.
     try {
@@ -176,6 +166,8 @@ int main(int argc, char* argv[]) {
         usage();
         return EXIT_FAILURE;
     }
+
+    rsc::misc::initSignalWaiter();
 
     // Create an event formatter
     Properties props;
@@ -200,12 +192,5 @@ int main(int argc, char* argv[]) {
         = getFactory().createListener(Scope(scope), config);
     listener->addHandler(HandlerPtr(new FormattingHandler(formatter)));
 
-    // Wait until termination is requested through the SIGINT handler.
-    signal(SIGINT, &handleSIGINT);
-    while (!doTerminate) {
-        boost::recursive_mutex::scoped_lock lock(terminateMutex, boost::try_to_lock);
-        terminateCondition.wait(lock);
-    }
-
-    return EXIT_SUCCESS;
+    return rsc::misc::suggestedExitCode(rsc::misc::waitForSignal());
 }
