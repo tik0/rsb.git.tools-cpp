@@ -30,6 +30,8 @@
 
 #include <boost/program_options.hpp>
 
+#include <rsc/misc/SignalWaiter.h>
+
 #include <rsb/EventId.h>
 #include <rsb/Factory.h>
 #include <rsb/Handler.h>
@@ -154,6 +156,8 @@ ParticipantConfig getNoConversionConfig() {
 
 int main(int argc, char **argv) {
 
+    rsc::misc::initSignalWaiter();
+
     options_description options("Allowed options");
     options.add_options()("help,h", "Display a help message.")("scope,s",
             value<string>(&dataScopeName), "The scope of original data")(
@@ -181,12 +185,6 @@ int main(int argc, char **argv) {
     listener->addHandler(HandlerPtr(new DelayedRequestingHandler(bufferServer)),
             true);
 
-    // TODO add better sleep logic
-    while (true) {
-        boost::this_thread::sleep(boost::posix_time::seconds(10));
-    }
-
-    return EXIT_SUCCESS;
+    rsc::misc::waitForSignal();
 
 }
-

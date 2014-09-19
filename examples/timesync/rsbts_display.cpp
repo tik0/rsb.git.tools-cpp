@@ -24,6 +24,8 @@
 
 #include <boost/program_options.hpp>
 
+#include <rsc/misc/SignalWaiter.h>
+
 #include <rsb/util/EventQueuePushHandler.h>
 
 #include <rsb/Event.h>
@@ -85,6 +87,9 @@ bool parseOptions(int argc, char **argv) {
 }
 
 int main(int argc, char **argv) {
+
+    rsc::misc::initSignalWaiter();
+
     if (!parseOptions(argc, argv)) {
         cerr << "Error parsing arguments. Terminating." << endl;
         return EXIT_FAILURE;
@@ -100,7 +105,7 @@ int main(int argc, char **argv) {
     ListenerPtr listener = getFactory().createListener(scope);
     listener->addHandler(HandlerPtr(new rsb::util::EventQueuePushHandler(eventQueue)));
 
-    while (true) {
+    while (!rsc::misc::hasSignalArrived()) {
 
         EventPtr event = eventQueue->pop();
 
