@@ -105,7 +105,7 @@ int main(int argc, char **argv) {
     ListenerPtr listener = getFactory().createListener(scope);
     listener->addHandler(HandlerPtr(new rsb::util::EventQueuePushHandler(eventQueue)));
 
-    while (!rsc::misc::hasSignalArrived()) {
+    while (rsc::misc::lastArrivedSignal() == rsc::misc::NO_SIGNAL) {
 
         EventPtr event = eventQueue->pop();
 
