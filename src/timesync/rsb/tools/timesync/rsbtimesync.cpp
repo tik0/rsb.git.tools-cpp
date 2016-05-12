@@ -3,7 +3,7 @@
  * This file is a part of the RSB TimeSync project.
  *
  * Copyright (C) 2011 by Johannes Wienke <jwienke at techfak dot uni-bielefeld dot de>
- * Copyright (C) 2012, 2014 Jan Moringen <jmoringe@techfak.dot uni-bielefeld.de>
+ * Copyright (C) 2012, 2014, 2016 Jan Moringen <jmoringe@techfak.dot uni-bielefeld.de>
  *
  * This program is free software; you can redistribute it
  * and/or modify it under the terms of the GNU General
@@ -39,6 +39,7 @@
 #include <rsb/Factory.h>
 #include <rsb/Listener.h>
 #include <rsb/Scope.h>
+#include <rsb/MetaData.h>
 #include <rsb/EventCollections.h>
 
 #include <rsb/converter/Converter.h>
@@ -339,8 +340,9 @@ ParticipantConfig createInformerConfig() {
 class InformingSyncDataHandler: public SyncDataHandler {
 public:
 
-    InformingSyncDataHandler(InformerBasePtr informer) :
-            informer(informer) {
+    InformingSyncDataHandler(InformerBasePtr informer,
+                                 TimestampSelectorPtr timestampSelector) :
+            informer(informer), timestampSelector(timestampSelector) {
     }
 
     virtual ~InformingSyncDataHandler() {
@@ -353,11 +355,35 @@ public:
     }
 
     void handle(EventPtr event) {
+        // Put the earliest and latest timestamps (w.r.t. the
+        // timestamp selector) of all events in the handled event into
+        // the user timestamps timesync:{earliest,latest} of the
+        // handled events.
+        //
+        // This allows downstream components to operate on these
+        // timestamps without having to traverse the EventsByScopeMap.
+        boost::shared_ptr<EventsByScopeMap> eventMap
+            = boost::static_pointer_cast<EventsByScopeMap>(event->getData());
+        boost::uint64_t earliest = std::numeric_limits<boost::uint64_t>::max();
+        boost::uint64_t latest = 0;
+        for (EventsByScopeMap::const_iterator scopeIt = eventMap->begin();
+                 scopeIt != eventMap->end(); ++scopeIt) {
+            for (vector<EventPtr>::const_iterator eventIt = scopeIt->second.begin();
+                     eventIt != scopeIt->second.end(); ++eventIt) {
+                boost::uint64_t timestamp = this->timestampSelector->getTimestamp(*eventIt);
+                earliest = std::min(earliest, timestamp);
+                latest = std::max(latest, timestamp);
+            }
+        }
+        event->mutableMetaData().setUserTime("timesync:earliest", earliest);
+        event->mutableMetaData().setUserTime("timesync:latest", latest);
+
         informer->publish(event);
     }
 
 private:
     InformerBasePtr informer;
+    TimestampSelectorPtr timestampSelector;
 
 };
 
@@ -379,7 +405,7 @@ int main(int argc, char **argv) {
     Informer<EventsByScopeMap>::Ptr informer =
             getFactory().createInformer<EventsByScopeMap>(outScope,
                     createInformerConfig());
-    SyncDataHandlerPtr handler(new InformingSyncDataHandler(informer));
+    SyncDataHandlerPtr handler(new InformingSyncDataHandler(informer, timestampSelector));
 
     // configure selected sync strategy
     strategy->initializeChannels(primaryScope, supplementaryScopes);
