@@ -19,6 +19,8 @@
 
 #include "PriorityTimestampSelector.h"
 
+#include <sstream>
+
 #include <rsc/runtime/ContainerIO.h>
 
 #include <rsb/MetaData.h>
@@ -52,8 +54,17 @@ void PriorityTimestampSelector::getTimestamp(const EventPtr &event,
         }
     }
 
-    // TODO add concrete list to exception string
-    throw NoSuchTimestampException("priority list");
+    ostringstream message;
+    for (vector<TimestampSelectorPtr>::iterator selectorIt =
+             selectorsByPriority.begin();
+         selectorIt != selectorsByPriority.end(); ++selectorIt) {
+        if (selectorIt != selectorsByPriority.begin()) {
+            message << " or ";
+        }
+        message << "according to " << **selectorIt;
+    }
+
+    throw NoSuchTimestampException(message.str());
 
 }
 
