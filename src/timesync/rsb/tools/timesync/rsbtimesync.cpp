@@ -239,8 +239,6 @@ bool parseOptions(int argc, char **argv,
                     nameIt != names.end(); ++nameIt) {
                 atomicSelectors.push_back(createSelectorFromName(*nameIt));
             }
-            // add default as a fall-back
-            atomicSelectors.push_back(timestampSelector);
             timestampSelector.reset(
                     new PriorityTimestampSelector(atomicSelectors));
 
