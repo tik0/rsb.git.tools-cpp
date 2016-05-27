@@ -264,7 +264,7 @@ void ApproximateTimeStrategy::publishCandidate() {
             eventIt != currentCandidate->getEvents().end(); ++eventIt) {
 
         (*message)[eventIt->first].push_back(eventIt->second);
-        resultEvent->addCause(eventIt->second->getEventId());
+        resultEvent->addCause(eventIt->second->getId());
 
     }
 

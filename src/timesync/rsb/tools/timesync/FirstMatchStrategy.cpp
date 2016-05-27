@@ -98,12 +98,12 @@ void FirstMatchStrategy::handle(EventPtr event) {
     // all buffers are filled, we can emit an event
     boost::shared_ptr<EventsByScopeMap> message(new EventsByScopeMap);
     (*message)[primaryEvent->getScope()].push_back(primaryEvent);
-    resultEvent->addCause(primaryEvent->getEventId());
+    resultEvent->addCause(primaryEvent->getId());
     primaryEvent.reset();
     for (std::map<Scope, EventPtr>::iterator it = supplementaryEvents.begin();
             it != supplementaryEvents.end(); ++it) {
         (*message)[it->second->getScope()].push_back(it->second);
-        resultEvent->addCause(it->second->getEventId());
+        resultEvent->addCause(it->second->getId());
         it->second.reset();
     }
     resultEvent->setData(message);

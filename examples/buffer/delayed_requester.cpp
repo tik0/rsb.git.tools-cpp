@@ -74,7 +74,7 @@ public:
                 "get",
                 bufferServer->prepareRequestEvent(
                         boost::shared_ptr<EventId>(
-                                new EventId(originalEvent->getEventId()))));
+                                new EventId(originalEvent->getId()))));
 
         cout << "#########" << endl;
         cout << "Original: " << originalEvent << endl;

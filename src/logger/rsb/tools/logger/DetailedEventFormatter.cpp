@@ -2,7 +2,7 @@
  *
  * This file is part of the RSB project
  *
- * Copyright (C) 2011, 2012 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
+ * Copyright (C) 2011-2017 Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
  *
  * This program is free software; you can redistribute it
  * and/or modify it under the terms of the GNU General
@@ -65,9 +65,9 @@ DetailedEventFormatter::DetailedEventFormatter(unsigned int indentSpaces,
 void DetailedEventFormatter::format(ostream &stream, EventPtr event) {
     stream << indent << "Event" << std::endl
            << indent << "  Scope           " << event->getScopePtr()->toString() << std::endl
-           << indent << "  Id              " << event->getEventId() << std::endl
+           << indent << "  Id              " << event->getId() << std::endl
            << indent << "  Type            " << event->getType() << std::endl
-           << indent << "  Origin          " << event->getMetaData().getSenderId().getIdAsString() << std::endl;
+           << indent << "  Origin          " << event->getId().getParticipantId().getIdAsString() << std::endl;
 
     const MetaData& metaData = event->getMetaData();
 

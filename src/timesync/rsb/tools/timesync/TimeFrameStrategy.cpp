@@ -56,7 +56,7 @@ public:
         // prepare message with primary event
         boost::shared_ptr<EventsByScopeMap> message(new EventsByScopeMap);
         (*message)[primaryEvent->getScope()].push_back(primaryEvent);
-        resultEvent->addCause(primaryEvent->getEventId());
+        resultEvent->addCause(primaryEvent->getId());
 
         // select the subsidiary events
         {
@@ -70,7 +70,7 @@ public:
                                     selector->getTimestamp(primaryEvent)
                                             + timeFrameMus); ++it) {
                 (*message)[it->second->getScope()].push_back(it->second);
-                resultEvent->addCause(it->second->getEventId());
+                resultEvent->addCause(it->second->getId());
             }
         }
 

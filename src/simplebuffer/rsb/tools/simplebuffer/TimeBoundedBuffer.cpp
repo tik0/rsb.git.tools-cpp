@@ -45,11 +45,11 @@ TimeBoundedBuffer::~TimeBoundedBuffer() {
 
 void TimeBoundedBuffer::insert(rsb::EventPtr event) {
     boost::recursive_mutex::scoped_lock lock(mapsMutex);
-    RSCTRACE(logger, "Inserting event with ID " << event->getEventId());
-    eventMap.insert(make_pair(event->getEventId(), event));
+    RSCTRACE(logger, "Inserting event with ID " << event->getId());
+    eventMap.insert(make_pair(event->getId(), event));
     deletionTimeToId.insert(
             make_pair(event->getMetaData().getDeliverTime() + deltaInMuSec,
-                    event->getEventId()));
+                    event->getId()));
     removeOld();
     RSCTRACE(
             logger,
