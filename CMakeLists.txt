@@ -17,7 +17,7 @@ OPTION(OPTION_BUILD_BUFFER "Decide whether to build the temporal buffer tool" TR
 
 # default version information
 SET(VERSION_MAJOR   "0" CACHE STRING "Major project version part")
-SET(VERSION_MINOR   "16" CACHE STRING "Minor project version part")
+SET(VERSION_MINOR   "17" CACHE STRING "Minor project version part")
 SET(RSB_TOOLS_ABI_VERSION "2")
 
 # Dependencies
