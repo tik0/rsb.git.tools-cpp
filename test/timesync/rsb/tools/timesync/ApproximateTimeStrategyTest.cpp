@@ -93,7 +93,7 @@ TEST_F(ApproximateTimeStrategyTest, testEqualFrequencyAndTiming) {
 
             EventPtr event(new Event);
             event->mutableMetaData().setCreateTime(currentTime);
-            event->setEventId(rsc::misc::UUID(), i);
+            event->setId(rsc::misc::UUID(), i);
             event->setScope(*scopeIt);
             event->setType(rsc::runtime::typeName<string>());
             event->setData(
@@ -157,7 +157,7 @@ TEST_F(ApproximateTimeStrategyTest, testOneDoubleFrequency) {
 
                 EventPtr event(new Event);
                 event->mutableMetaData().setCreateTime(currentTime);
-                event->setEventId(rsc::misc::UUID(), i);
+                event->setId(rsc::misc::UUID(), i);
                 event->setScope(*scopeIt);
                 event->setType(rsc::runtime::typeName<string>());
                 event->setData(
@@ -211,7 +211,7 @@ TEST_F(ApproximateTimeStrategyTest, testOneDoubleFrequency) {
 
 EventPtr createEvent(const Scope &scope, const string &content) {
     EventPtr event(new Event);
-    event->setEventId(rsc::misc::UUID(), rand());
+    event->setId(rsc::misc::UUID(), rand());
     event->setScope(scope);
     event->setType(rsc::runtime::typeName<string>());
     event->setData(VoidPtr(new string(content)));
